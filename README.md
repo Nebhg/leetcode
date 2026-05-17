@@ -62,8 +62,8 @@ leetcode/
 - [ ] Best Time to Buy and Sell Stock (#121)
 - [ ] Valid Palindrome (#125)
 - [ ] Reverse Linked List (#206)
-- [ ] Merge Two Sorted Lists (#21)
-- [ ] Valid Parentheses (#20)
+- [x] Merge Two Sorted Lists (#21)
+- [x] Valid Parentheses (#20)
 - [ ] Maximum Subarray (#53)
 - [ ] Climbing Stairs (#70)
 

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Big-O Complexity Reference</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f0f0e;
+    color: #e8e8e4;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #c8f060;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    color: #888;
+    font-size: 0.85rem;
+    margin-bottom: 28px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #222;
+    padding-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { color: #aaa; }
+  .tab-btn.active { color: #c8f060; border-bottom-color: #c8f060; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #ddd;
+  }
+
+  /* COMPLEXITY TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    color: #888;
+    font-weight: 500;
+    border-bottom: 1px solid #222;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1a1a1a;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1a1a1a; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .badge-green  { background: #1a2e0a; color: #7ecb3a; border: 1px solid #2d4a15; }
+  .badge-lime   { background: #1f2e08; color: #a8d430; border: 1px solid #354a12; }
+  .badge-yellow { background: #2a2400; color: #d4b030; border: 1px solid #4a3e00; }
+  .badge-orange { background: #2a1800; color: #d47830; border: 1px solid #4a2a00; }
+  .badge-red    { background: #2a0a0a; color: #d44040; border: 1px solid #4a1a1a; }
+  .badge-crimson{ background: #220000; color: #cc2020; border: 1px solid #3a0000; }
+  .badge-purple { background: #1a0a2a; color: #9040cc; border: 1px solid #2a1a3a; }
+  .badge-dark   { background: #0a0008; color: #6622aa; border: 1px solid #1a0a22; }
+
+  /* CODE BLOCK */
+  pre {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 7px;
+    padding: 14px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: #ccc;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+
+  .kw   { color: #c8f060; }
+  .fn   { color: #82cfff; }
+  .cm   { color: #555; }
+  .str  { color: #f0a060; }
+  .num  { color: #f07090; }
+
+  /* CHART */
+  .chart-wrap {
+    position: relative;
+    height: 320px;
+    width: 100%;
+  }
+
+  /* SLIDER */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: #888;
+  }
+
+  input[type=range] {
+    flex: 1;
+    accent-color: #c8f060;
+    height: 4px;
+  }
+
+  .slider-val {
+    font-family: 'DM Mono', monospace;
+    color: #c8f060;
+    min-width: 60px;
+  }
+
+  /* TOGGLE */
+  .toggle-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .toggle-btn {
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #666;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.74rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .toggle-btn.on { background: #1e2e08; color: #c8f060; border-color: #4a5e14; }
+
+  /* GRID VISUALIZER */
+  .grid-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .grid-box {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .grid-box h3 {
+    font-family: 'DM Mono', monospace;
+    color: #c8f060;
+    font-size: 0.82rem;
+    margin-bottom: 8px;
+  }
+
+  .grid-box p {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .dot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    max-height: 80px;
+    overflow: hidden;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #333;
+    transition: background 0.1s;
+  }
+
+  .dot.active { background: #c8f060; }
+  .dot.secondary { background: #508040; }
+
+  /* BINARY SEARCH ANIMATION */
+  .bs-array {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+
+  .bs-cell {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    border: 1px solid #222;
+    background: #1a1a1a;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .bs-cell.active { background: #c8f060; color: #0f0f0e; border-color: #c8f060; font-weight: 600; }
+  .bs-cell.eliminated { background: #0d0d0d; color: #333; border-color: #1a1a1a; }
+  .bs-cell.range { background: #1a2e0a; color: #7ecb3a; border-color: #2d4a15; }
+
+  .bs-step-info {
+    font-size: 0.78rem;
+    color: #888;
+    margin: 8px 0;
+    min-height: 20px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .action-btn {
+    background: #1e2e08;
+    border: 1px solid #4a5e14;
+    color: #c8f060;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+
+  .action-btn:hover { background: #2a3e10; }
+
+  /* MERGE SORT TREE */
+  .tree-container {
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+
+  .tree-level {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tree-node {
+    background: #1a2e0a;
+    border: 1px solid #2d4a15;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: #7ecb3a;
+    white-space: nowrap;
+    transition: all 0.3s;
+  }
+
+  .tree-node.level-0 { background: #162600; border-color: #3a6010; color: #c8f060; }
+  .tree-node.level-1 { background: #1a2e0a; border-color: #2d4a15; }
+  .tree-node.level-2 { background: #141e08; border-color: #253412; }
+  .tree-node.level-3 { background: #101408; border-color: #1e280e; color: #5a8a30; }
+  .tree-node.level-4 { background: #0e1206; border-color: #1a200a; color: #3a6020; }
+
+  .tree-label {
+    text-align: center;
+    font-size: 0.72rem;
+    color: #555;
+    margin-bottom: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .level-annotation {
+    text-align: right;
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    color: #555;
+    margin-bottom: 6px;
+    padding-right: 8px;
+  }
+
+  /* LOG TABLE */
+  .log-table {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .log-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid #1a1a1a;
+    color: #888;
+  }
+
+  .log-table td:first-child { color: #c8f060; }
+  .log-table td:last-child { color: #7ecb3a; text-align: right; }
+
+  /* EXAMPLES GRID */
+  .examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .example-card {
+    background: #111;
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .example-card .ex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .example-card .ex-title {
+    font-size: 0.82rem;
+    color: #aaa;
+    font-weight: 500;
+  }
+
+  .note-box {
+    background: #0e1a06;
+    border: 1px solid #1e3010;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: #7ecb3a;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .warn-box {
+    background: #1a1000;
+    border: 1px solid #3a2a00;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: #d4a030;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    body { padding: 20px 14px; }
+    .grid-section { grid-template-columns: 1fr; }
+    .examples-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Big-O Complexity Reference</h1>
+<p class="subtitle">BofA Prep · All complexities · Interactive visualisations</p>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('overview')">Overview</button>
+  <button class="tab-btn" onclick="showTab('growth')">Growth Curves</button>
+  <button class="tab-btn" onclick="showTab('patterns')">Code Patterns</button>
+  <button class="tab-btn" onclick="showTab('logn')">O(log n) Visualised</button>
+  <button class="tab-btn" onclick="showTab('nlogn')">O(n log n) Tree</button>
+  <button class="tab-btn" onclick="showTab('examples')">Worked Examples</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TAB 1: OVERVIEW -->
+<div id="tab-overview" class="tab-content active">
+
+  <div class="card">
+    <h2>All Complexity Classes</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Notation</th>
+          <th>Name</th>
+          <th>Rating</th>
+          <th>n=10</th>
+          <th>n=100</th>
+          <th>n=1000</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-green">O(1)</span></td>
+          <td>Constant</td>
+          <td>Excellent</td>
+          <td>1</td><td>1</td><td>1</td>
+          <td>Dict lookup, array index, math formula</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-lime">O(log n)</span></td>
+          <td>Logarithmic</td>
+          <td>Excellent</td>
+          <td>3</td><td>7</td><td>10</td>
+          <td>Binary search, balanced BST lookup</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-lime">O(√n)</span></td>
+          <td>Square root</td>
+          <td>Good</td>
+          <td>3</td><td>10</td><td>32</td>
+          <td>Sieve of Eratosthenes inner loop</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">O(n)</span></td>
+          <td>Linear</td>
+          <td>Good</td>
+          <td>10</td><td>100</td><td>1,000</td>
+          <td>Single loop, linear search, list traversal</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-yellow">O(n log n)</span></td>
+          <td>Linearithmic</td>
+          <td>Fair</td>
+          <td>33</td><td>664</td><td>9,966</td>
+          <td>Merge sort, heap sort, quicksort (avg)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-orange">O(n²)</span></td>
+          <td>Quadratic</td>
+          <td>Bad</td>
+          <td>100</td><td>10,000</td><td>1,000,000</td>
+          <td>Nested loops, bubble sort, insertion sort</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-orange">O(n³)</span></td>
+          <td>Cubic</td>
+          <td>Bad</td>
+          <td>1,000</td><td>1,000,000</td><td>10⁹</td>
+          <td>Triple nested loops, naive matrix multiply</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-red">O(2ⁿ)</span></td>
+          <td>Exponential</td>
+          <td>Terrible</td>
+          <td>1,024</td><td>10³⁰</td><td>—</td>
+          <td>Naive recursion (fibonacci), power set</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-crimson">O(n!)</span></td>
+          <td>Factorial</td>
+          <td>Terrible</td>
+          <td>3.6M</td><td>—</td><td>—</td>
+          <td>Permutations, brute-force TSP</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>The Golden Rules</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;">
+      <div class="grid-box">
+        <h3>Drop constants</h3>
+        <p>O(2n) → O(n) · O(500) → O(1)<br>Constants don't affect growth rate — only the dominant term matters at scale.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Drop lower-order terms</h3>
+        <p>O(n² + n) → O(n²) · O(n log n + n) → O(n log n)<br>As n grows, the smaller term becomes negligible.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Sequential → add</h3>
+        <p>Two separate loops = O(n) + O(n) = O(2n) → O(n)<br>Not O(n²) — nesting multiplies, sequencing adds.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Nested → multiply</h3>
+        <p>Loop inside a loop = O(n) × O(n) = O(n²)<br>Each outer step triggers a full inner traversal.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Halving → log n</h3>
+        <p>Any time each step cuts the problem in half: O(log n)<br>After k halvings, n/2ᵏ = 1 → k = log₂(n)</p>
+      </div>
+      <div class="grid-box">
+        <h3>Recursion trees</h3>
+        <p>Count levels (log n) × work per level (n) = O(n log n)<br>Or levels × branching factor for exponential cases.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Python Built-in Complexities</h2>
+    <table>
+      <thead><tr><th>Operation</th><th>Complexity</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">list.append(x)</code></td><td><span class="badge badge-green">O(1) amortised</span></td><td>Dynamic array — occasional O(n) resize but amortised constant</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">x in list</code></td><td><span class="badge badge-yellow">O(n)</span></td><td>Linear scan — must check every element</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">x in set / dict</code></td><td><span class="badge badge-green">O(1) avg</span></td><td>Hash table — one hash computation + one lookup</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">list.sort()</code></td><td><span class="badge badge-yellow">O(n log n)</span></td><td>Timsort — hybrid mergesort/insertion sort</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">list[i]</code></td><td><span class="badge badge-green">O(1)</span></td><td>Direct index arithmetic — contiguous memory</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">list.insert(0, x)</code></td><td><span class="badge badge-yellow">O(n)</span></td><td>Must shift every element right by one</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">dict[key]</code></td><td><span class="badge badge-green">O(1) avg</span></td><td>Hash table lookup</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">len(x)</code></td><td><span class="badge badge-green">O(1)</span></td><td>Length stored as attribute — no counting</td></tr>
+        <tr><td><code style="font-family:'DM Mono',monospace;color:#82cfff">list slicing [a:b]</code></td><td><span class="badge badge-yellow">O(k)</span></td><td>k = size of slice — must copy elements</td></tr>
+      </tbody>
+    </table>
+    <div class="warn-box">
+      ⚠ The most common interview trap: using <code style="font-family:'DM Mono',monospace">x in list</code> inside a loop. Looks like O(n) — actually O(n²). Switch to a set and it becomes O(n).
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TAB 2: GROWTH CURVES -->
+<div id="tab-growth" class="tab-content">
+  <div class="card">
+    <h2>Growth Rate Comparison</h2>
+    <div class="chart-wrap">
+      <canvas id="growthChart"></canvas>
+    </div>
+    <div class="slider-row">
+      <span>Max n</span>
+      <input type="range" id="nSlider" min="5" max="30" value="15" oninput="updateGrowthChart()">
+      <span class="slider-val" id="nVal">n = 15</span>
+    </div>
+    <div class="toggle-row" id="complexityToggles"></div>
+  </div>
+
+  <div class="card">
+    <h2>Operations at Scale</h2>
+    <p style="font-size:0.82rem;color:#666;margin-bottom:14px;">How many operations for different n values. At 1 billion ops/sec:</p>
+    <table>
+      <thead><tr><th>Complexity</th><th>n = 10</th><th>n = 100</th><th>n = 1,000</th><th>n = 10,000</th><th>Time at n=10,000</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-green">O(1)</span></td><td>1</td><td>1</td><td>1</td><td>1</td><td>&lt; 1ns</td></tr>
+        <tr><td><span class="badge badge-lime">O(log n)</span></td><td>3</td><td>7</td><td>10</td><td>13</td><td>&lt; 1ns</td></tr>
+        <tr><td><span class="badge badge-lime">O(√n)</span></td><td>3</td><td>10</td><td>32</td><td>100</td><td>&lt; 1ns</td></tr>
+        <tr><td><span class="badge badge-yellow">O(n)</span></td><td>10</td><td>100</td><td>1,000</td><td>10,000</td><td>10μs</td></tr>
+        <tr><td><span class="badge badge-yellow">O(n log n)</span></td><td>33</td><td>664</td><td>9,966</td><td>132,877</td><td>133μs</td></tr>
+        <tr><td><span class="badge badge-orange">O(n²)</span></td><td>100</td><td>10,000</td><td>1,000,000</td><td>100,000,000</td><td>100ms</td></tr>
+        <tr><td><span class="badge badge-orange">O(n³)</span></td><td>1,000</td><td>1,000,000</td><td>10⁹</td><td>10¹²</td><td>~16 min</td></tr>
+        <tr><td><span class="badge badge-red">O(2ⁿ)</span></td><td>1,024</td><td>10³⁰</td><td>—</td><td>—</td><td>heat death</td></tr>
+        <tr><td><span class="badge badge-crimson">O(n!)</span></td><td>3,628,800</td><td>—</td><td>—</td><td>—</td><td>heat death</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TAB 3: CODE PATTERNS -->
+<div id="tab-patterns" class="tab-content">
+
+  <div class="card">
+    <h2>What Code Structure → What Complexity</h2>
+    <div class="grid-section">
+
+      <div class="grid-box">
+        <h3>O(1) — Constant</h3>
+        <p>No loops. Direct access or fixed computation.</p>
+        <pre><span class="kw">def</span> <span class="fn">get_first</span>(arr):
+    <span class="kw">return</span> arr[<span class="num">0</span>]   <span class="cm"># one operation</span>
+
+<span class="kw">def</span> <span class="fn">lookup</span>(d, key):
+    <span class="kw">return</span> d[key]   <span class="cm"># hash table lookup</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(log n) — Logarithmic</h3>
+        <p>Problem halves each iteration. Classic: binary search.</p>
+        <pre><span class="kw">while</span> lo &lt;= hi:
+    mid = (lo + hi) // <span class="num">2</span>
+    <span class="kw">if</span> arr[mid] == target:
+        <span class="kw">return</span> mid
+    <span class="kw">elif</span> arr[mid] &lt; target:
+        lo = mid + <span class="num">1</span>  <span class="cm"># discard left half</span>
+    <span class="kw">else</span>:
+        hi = mid - <span class="num">1</span>  <span class="cm"># discard right half</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(√n) — Square root</h3>
+        <p>Loop runs up to √n times — checking divisors only needs to go to √n.</p>
+        <pre><span class="kw">def</span> <span class="fn">is_prime</span>(n):
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="fn">int</span>(n**<span class="num">0.5</span>) + <span class="num">1</span>):
+        <span class="kw">if</span> n % i == <span class="num">0</span>:
+            <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">return</span> <span class="kw">True</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n) — Linear</h3>
+        <p>Single loop over all elements. Work scales directly with n.</p>
+        <pre><span class="kw">def</span> <span class="fn">find_max</span>(arr):
+    best = arr[<span class="num">0</span>]
+    <span class="kw">for</span> x <span class="kw">in</span> arr:    <span class="cm"># n iterations</span>
+        <span class="kw">if</span> x > best:
+            best = x
+    <span class="kw">return</span> best</pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n) — Two separate loops</h3>
+        <p>O(n) + O(n) = O(2n) = O(n). Sequential, not nested!</p>
+        <pre><span class="kw">for</span> x <span class="kw">in</span> arr:      <span class="cm"># first pass O(n)</span>
+    process(x)
+
+<span class="kw">for</span> x <span class="kw">in</span> arr:      <span class="cm"># second pass O(n)</span>
+    do_other(x)
+<span class="cm"># Total: O(n) — NOT O(n²)</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n log n) — Linearithmic</h3>
+        <p>Sorting, or divide-and-conquer where each level does O(n) work.</p>
+        <pre><span class="kw">def</span> <span class="fn">merge_sort</span>(arr):
+    <span class="kw">if</span> <span class="fn">len</span>(arr) &lt;= <span class="num">1</span>: <span class="kw">return</span> arr
+    mid = <span class="fn">len</span>(arr) // <span class="num">2</span>
+    L = <span class="fn">merge_sort</span>(arr[:mid])   <span class="cm"># log n levels</span>
+    R = <span class="fn">merge_sort</span>(arr[mid:])
+    <span class="kw">return</span> <span class="fn">merge</span>(L, R)           <span class="cm"># O(n) per level</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n²) — Quadratic</h3>
+        <p>Nested loops, each going to n. O(n) × O(n) = O(n²).</p>
+        <pre><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):      <span class="cm"># outer: n steps</span>
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):  <span class="cm"># inner: n steps</span>
+        print(arr[i], arr[j])
+<span class="cm"># n × n = n² total operations</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n²) — Even if inner doesn't reach n</h3>
+        <p>Inner loop starting at i+1 still = n(n-1)/2 ≈ n²/2 → O(n²)</p>
+        <pre><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(i+<span class="num">1</span>, n): <span class="cm"># still O(n²)!</span>
+        <span class="cm"># pairs: n(n-1)/2 ≈ n²/2</span>
+        check_pair(arr[i], arr[j])</pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n³) — Cubic</h3>
+        <p>Three nested loops. Rare but real (e.g. Floyd-Warshall).</p>
+        <pre><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n):
+        <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(n):
+            dp[i][j] = <span class="fn">min</span>(
+                dp[i][j],
+                dp[i][k] + dp[k][j])</pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(2ⁿ) — Exponential</h3>
+        <p>Two recursive calls each time. Branches double every level.</p>
+        <pre><span class="kw">def</span> <span class="fn">fib</span>(n):             <span class="cm"># naive recursion</span>
+    <span class="kw">if</span> n &lt;= <span class="num">1</span>: <span class="kw">return</span> n
+    <span class="kw">return</span> <span class="fn">fib</span>(n-<span class="num">1</span>) + <span class="fn">fib</span>(n-<span class="num">2</span>)
+<span class="cm"># Each call → 2 more calls → tree of 2ⁿ nodes
+# Fix: memoisation → O(n)</span></pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n!) — Factorial</h3>
+        <p>Generating all permutations. n choices, then n-1, then n-2...</p>
+        <pre><span class="kw">def</span> <span class="fn">permutations</span>(arr, current=[]):
+    <span class="kw">if not</span> arr:
+        results.append(current)
+        <span class="kw">return</span>
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(arr):
+        <span class="fn">permutations</span>(    <span class="cm"># n × (n-1) × ... = n!</span>
+            arr[:i] + arr[i+<span class="num">1</span>:],
+            current + [x])</pre>
+      </div>
+
+      <div class="grid-box">
+        <h3>O(n) — Looks like O(n²) but isn't</h3>
+        <p>Hash set lookup is O(1), not O(n). The key insight Hugo will probe!</p>
+        <pre><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):
+    seen = {}           <span class="cm"># hash table</span>
+    <span class="kw">for</span> num <span class="kw">in</span> nums:   <span class="cm"># O(n) outer loop</span>
+        complement = target - num
+        <span class="kw">if</span> complement <span class="kw">in</span> seen:  <span class="cm"># O(1)!</span>
+            <span class="kw">return</span> [seen[complement], ...]
+        seen[num] = ...
+<span class="cm"># Total: O(n) × O(1) = O(n)</span></pre>
+      </div>
+
+    </div>
+
+    <div class="note-box" style="margin-top:16px">
+      💡 <strong>The 5-step method:</strong> (1) count loops and their ranges, (2) check if loops are nested or sequential, (3) check if any loop variable halves/grows exponentially, (4) check inner data structure operations (dict/set = O(1), list `in` = O(n)), (5) combine: sequential adds, nested multiplies.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TAB 4: O(log n) -->
+<div id="tab-logn" class="tab-content">
+
+  <div class="card">
+    <h2>Why Halving Gives O(log n)</h2>
+    <p style="font-size:0.85rem;color:#888;margin-bottom:16px;">Each step eliminates half the remaining candidates. After k steps, you have n/2ᵏ elements left. You stop when that equals 1, so k = log₂(n).</p>
+
+    <div id="bsContainer">
+      <div class="bs-array" id="bsArray"></div>
+      <div class="bs-step-info" id="bsInfo">Press Step to begin binary search for target = 7</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap">
+        <button class="action-btn" onclick="bsStep()">Step →</button>
+        <button class="action-btn" onclick="bsReset()">Reset</button>
+        <span style="font-size:0.78rem;color:#555;font-family:'DM Mono',monospace" id="bsStepCount">Step 0</span>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <h2 style="margin-bottom:14px">Steps Required vs Input Size</h2>
+      <table class="log-table">
+        <tr><td>n = 1</td><td>log₂(1) = 0 steps</td><td>1</td></tr>
+        <tr><td>n = 2</td><td>log₂(2) = 1 step</td><td>1</td></tr>
+        <tr><td>n = 4</td><td>log₂(4) = 2 steps</td><td>2</td></tr>
+        <tr><td>n = 8</td><td>log₂(8) = 3 steps</td><td>3</td></tr>
+        <tr><td>n = 16</td><td>log₂(16) = 4 steps</td><td>4</td></tr>
+        <tr><td>n = 32</td><td>log₂(32) = 5 steps</td><td>5</td></tr>
+        <tr><td>n = 64</td><td>log₂(64) = 6 steps</td><td>6</td></tr>
+        <tr><td>n = 128</td><td>log₂(128) = 7 steps</td><td>7</td></tr>
+        <tr><td>n = 1,024</td><td>log₂(1024) = 10 steps</td><td>10</td></tr>
+        <tr><td>n = 1,000,000</td><td>log₂(1M) ≈ 20 steps</td><td>20</td></tr>
+        <tr><td>n = 1,000,000,000</td><td>log₂(1B) ≈ 30 steps</td><td>30</td></tr>
+      </table>
+      <div class="note-box">Key insight: doubling the input size only adds ONE more step. This is why O(log n) is so powerful — a billion elements only needs ~30 comparisons.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Other O(log n) Patterns</h2>
+    <div class="grid-section">
+      <div class="grid-box">
+        <h3>Balanced BST lookup</h3>
+        <p>Each comparison eliminates half the tree. Height of balanced BST = log n.</p>
+        <pre><span class="kw">def</span> <span class="fn">bst_search</span>(node, target):
+    <span class="kw">if not</span> node: <span class="kw">return</span> <span class="kw">None</span>
+    <span class="kw">if</span> node.val == target: <span class="kw">return</span> node
+    <span class="kw">if</span> target &lt; node.val:
+        <span class="kw">return</span> <span class="fn">bst_search</span>(node.left, target)
+    <span class="kw">return</span> <span class="fn">bst_search</span>(node.right, target)</pre>
+      </div>
+      <div class="grid-box">
+        <h3>Integer division loop</h3>
+        <p>Any loop where n is divided by a constant each iteration = O(log n).</p>
+        <pre>n = <span class="num">1024</span>
+steps = <span class="num">0</span>
+<span class="kw">while</span> n > <span class="num">1</span>:
+    n //= <span class="num">2</span>    <span class="cm"># halves each time</span>
+    steps += <span class="num">1</span>
+<span class="cm"># steps = log₂(1024) = 10</span></pre>
+      </div>
+      <div class="grid-box">
+        <h3>Watch out: O(n log n) sorting</h3>
+        <p>If you sort inside an O(n) loop, total is O(n log n) × O(n) = O(n² log n). Always sort before the loop.</p>
+        <pre><span class="cm"># BAD: O(n² log n)</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+    arr.sort()     <span class="cm"># O(n log n) inside loop!</span>
+    process(arr[i])
+
+<span class="cm"># GOOD: O(n log n)</span>
+arr.sort()         <span class="cm"># sort once outside</span>
+<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n):
+    process(arr[i])</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TAB 5: n log n TREE -->
+<div id="tab-nlogn" class="tab-content">
+
+  <div class="card">
+    <h2>Why Merge Sort is O(n log n)</h2>
+    <p style="font-size:0.85rem;color:#888;margin-bottom:16px;">Two independent reasons combine: the recursion tree has log n levels, and each level does exactly n units of merge work. Total = n × log n.</p>
+
+    <div id="treeContainer"></div>
+
+    <div class="slider-row" style="margin-top:16px">
+      <span>Array size (n)</span>
+      <input type="range" id="treeSizeSlider" min="1" max="5" value="3" oninput="updateTree()">
+      <span class="slider-val" id="treeSizeVal">n = 8</span>
+    </div>
+
+    <div style="margin-top:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div class="grid-box">
+        <h3>Why log n levels?</h3>
+        <p>Each level halves the subarray size. Starting from n, we reach size 1 after log₂(n) splits. This is the same halving logic as O(log n) — just applied to the recursion depth.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Why n work per level?</h3>
+        <p>At every level, we're merging all elements exactly once. Level 1: one merge of n elements. Level 2: two merges of n/2 each = n total. Level 3: four merges of n/4 each = n total. Always n.</p>
+      </div>
+      <div class="grid-box">
+        <h3>The multiplication</h3>
+        <p>log n levels × n work per level = n log n total operations. This is why sorting is the "best you can do" for comparison-based sorts — you can't do better than O(n log n).</p>
+      </div>
+      <div class="grid-box">
+        <h3>Space complexity</h3>
+        <p>Merge sort needs O(n) extra space — the merge step creates auxiliary arrays. Quicksort avoids this (in-place) but has O(n²) worst case. Heapsort is O(1) space and O(n log n) guaranteed.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>O(n log n) vs O(n²): The Practical Gap</h2>
+    <div class="chart-wrap" style="height:240px">
+      <canvas id="sortChart"></canvas>
+    </div>
+    <p style="font-size:0.78rem;color:#555;margin-top:10px">At n=10,000: merge sort ≈ 132,000 ops. Bubble sort = 100,000,000 ops. That's a 756× difference.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TAB 6: EXAMPLES -->
+<div id="tab-examples" class="tab-content">
+
+  <div class="card">
+    <h2>7 Worked Examples — Identify the Complexity</h2>
+    <p style="font-size:0.82rem;color:#666;margin-bottom:16px;">Try each one before revealing the answer.</p>
+
+    <div class="examples-grid" id="examplesGrid"></div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════ TABS
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'growth') initGrowthChart();
+  if (name === 'nlogn') { initSortChart(); updateTree(); }
+  if (name === 'logn') initBS();
+  if (name === 'examples') initExamples();
+}
+
+// ═══════════════════════════════════ GROWTH CHART
+const complexities = [
+  { label: 'O(1)',      fn: n => 1,                         color: '#7ecb3a', on: true },
+  { label: 'O(log n)', fn: n => Math.log2(n),               color: '#a8d430', on: true },
+  { label: 'O(√n)',    fn: n => Math.sqrt(n),               color: '#d4d030', on: false },
+  { label: 'O(n)',      fn: n => n,                          color: '#d4b030', on: true },
+  { label: 'O(n log n)',fn: n => n * Math.log2(n),           color: '#d48030', on: true },
+  { label: 'O(n²)',    fn: n => n * n,                      color: '#d44040', on: true },
+  { label: 'O(n³)',    fn: n => n * n * n,                  color: '#cc2020', on: false },
+  { label: 'O(2ⁿ)',   fn: n => Math.pow(2, n),             color: '#9040cc', on: false },
+  { label: 'O(n!)',    fn: n => factorial(n),               color: '#6622aa', on: false },
+];
+
+function factorial(n) {
+  if (n > 15) return Infinity;
+  let r = 1; for (let i = 2; i <= n; i++) r *= i; return r;
+}
+
+let growthChart = null;
+
+function initGrowthChart() {
+  if (growthChart) return;
+  const toggleDiv = document.getElementById('complexityToggles');
+  complexities.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'toggle-btn' + (c.on ? ' on' : '');
+    btn.textContent = c.label;
+    btn.onclick = () => {
+      c.on = !c.on;
+      btn.classList.toggle('on', c.on);
+      updateGrowthChart();
+    };
+    toggleDiv.appendChild(btn);
+  });
+
+  const ctx = document.getElementById('growthChart').getContext('2d');
+  growthChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { labels: { color: '#888', font: { family: 'DM Mono', size: 11 } } }
+      },
+      scales: {
+        x: { ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#1a1a1a' } },
+        y: { ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#1a1a1a' } }
+      }
+    }
+  });
+  updateGrowthChart();
+}
+
+function updateGrowthChart() {
+  const maxN = parseInt(document.getElementById('nSlider').value);
+  document.getElementById('nVal').textContent = 'n = ' + maxN;
+  if (!growthChart) return;
+
+  const labels = Array.from({length: maxN}, (_, i) => i + 1);
+  const datasets = complexities.filter(c => c.on).map(c => ({
+    label: c.label,
+    data: labels.map(n => { const v = c.fn(n); return isFinite(v) ? Math.min(v, 1e9) : null; }),
+    borderColor: c.color,
+    backgroundColor: 'transparent',
+    pointRadius: 2,
+    borderWidth: 2,
+    tension: 0.3,
+  }));
+
+  growthChart.data.labels = labels;
+  growthChart.data.datasets = datasets;
+  growthChart.update();
+}
+
+// ═══════════════════════════════════ BINARY SEARCH ANIMATION
+const bsData = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31];
+const bsTarget = 7;
+let bsState = { lo: 0, hi: bsData.length - 1, step: 0, done: false };
+
+function initBS() {
+  bsReset();
+}
+
+function bsReset() {
+  bsState = { lo: 0, hi: bsData.length - 1, step: 0, done: false };
+  renderBS();
+  document.getElementById('bsInfo').textContent = `Binary search for target = ${bsTarget}. Array has ${bsData.length} elements → needs at most log₂(${bsData.length}) = ${Math.ceil(Math.log2(bsData.length))} steps.`;
+  document.getElementById('bsStepCount').textContent = 'Step 0';
+}
+
+function bsStep() {
+  if (bsState.done) { bsReset(); return; }
+  const {lo, hi} = bsState;
+  if (lo > hi) { bsState.done = true; renderBS(); document.getElementById('bsInfo').textContent = 'Not found!'; return; }
+  const mid = Math.floor((lo + hi) / 2);
+  bsState.step++;
+  document.getElementById('bsStepCount').textContent = `Step ${bsState.step} of max ${Math.ceil(Math.log2(bsData.length))}`;
+  if (bsData[mid] === bsTarget) {
+    bsState.found = mid;
+    bsState.done = true;
+    renderBS();
+    document.getElementById('bsInfo').textContent = `✓ Found ${bsTarget} at index ${mid} in ${bsState.step} step(s). Max possible was ${Math.ceil(Math.log2(bsData.length))}.`;
+    return;
+  }
+  if (bsData[mid] < bsTarget) {
+    document.getElementById('bsInfo').textContent = `Step ${bsState.step}: arr[${mid}] = ${bsData[mid]} < ${bsTarget} → search right half [${mid+1}..${hi}]`;
+    bsState.lo = mid + 1;
+  } else {
+    document.getElementById('bsInfo').textContent = `Step ${bsState.step}: arr[${mid}] = ${bsData[mid]} > ${bsTarget} → search left half [${lo}..${mid-1}]`;
+    bsState.hi = mid - 1;
+  }
+  bsState.mid = mid;
+  renderBS();
+}
+
+function renderBS() {
+  const container = document.getElementById('bsArray');
+  container.innerHTML = '';
+  bsData.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'bs-cell';
+    cell.textContent = val;
+    if (bsState.found === i) cell.className = 'bs-cell active';
+    else if (i < bsState.lo || i > bsState.hi) cell.className = 'bs-cell eliminated';
+    else if (i === bsState.mid) cell.className = 'bs-cell active';
+    else cell.className = 'bs-cell range';
+    container.appendChild(cell);
+  });
+}
+
+// ═══════════════════════════════════ MERGE SORT TREE
+const treeSizes = [2, 4, 8, 16, 32];
+
+function updateTree() {
+  const idx = parseInt(document.getElementById('treeSizeSlider').value) - 1;
+  const n = treeSizes[idx];
+  document.getElementById('treeSizeVal').textContent = `n = ${n}`;
+  const levels = Math.log2(n);
+  const container = document.getElementById('treeContainer');
+  container.innerHTML = '';
+
+  const annotations = document.createElement('div');
+  annotations.style.display = 'flex';
+  annotations.style.flexDirection = 'column';
+
+  for (let level = 0; level <= levels; level++) {
+    const row = document.createElement('div');
+    const numNodes = Math.pow(2, level);
+    const nodeSize = n / numNodes;
+    row.style.display = 'flex';
+    row.style.justifyContent = 'center';
+    row.style.alignItems = 'center';
+    row.style.marginBottom = '6px';
+    row.style.gap = '6px';
+    row.style.flexWrap = 'wrap';
+    row.style.position = 'relative';
+
+    for (let i = 0; i < numNodes; i++) {
+      const node = document.createElement('div');
+      node.className = `tree-node level-${Math.min(level, 4)}`;
+      node.textContent = nodeSize === 1 ? `[·]` : `[${nodeSize}]`;
+      row.appendChild(node);
+    }
+
+    const ann = document.createElement('div');
+    ann.style.fontSize = '0.72rem';
+    ann.style.color = '#444';
+    ann.style.fontFamily = "'DM Mono', monospace";
+    ann.style.textAlign = 'center';
+    ann.style.marginBottom = '2px';
+    if (level === 0) ann.textContent = `Level 0 — 1 subarray of size ${n} — merge work: ${n}`;
+    else if (nodeSize === 1) ann.textContent = `Level ${level} — ${numNodes} base cases (size 1) — no merge needed`;
+    else ann.textContent = `Level ${level} — ${numNodes} subarrays of size ${nodeSize} — merge work: ${numNodes}×${nodeSize} = ${n}`;
+
+    annotations.appendChild(row);
+    annotations.appendChild(ann);
+  }
+
+  const summary = document.createElement('div');
+  summary.className = 'note-box';
+  summary.style.marginTop = '12px';
+  summary.innerHTML = `<strong>Summary:</strong> ${levels} levels of merging × ${n} operations per level = <strong>${levels}×${n} = ${levels * n} operations = O(n log n)</strong> where n = ${n}, log₂(${n}) = ${levels}`;
+
+  container.appendChild(annotations);
+  container.appendChild(summary);
+}
+
+// ═══════════════════════════════════ SORT COMPARISON CHART
+let sortChart = null;
+
+function initSortChart() {
+  if (sortChart) return;
+  const ctx = document.getElementById('sortChart').getContext('2d');
+  const ns = [100, 500, 1000, 2000, 5000, 10000];
+  sortChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ns.map(n => 'n=' + n.toLocaleString()),
+      datasets: [
+        {
+          label: 'O(n log n) — Merge sort',
+          data: ns.map(n => n * Math.log2(n)),
+          borderColor: '#7ecb3a',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: 0.3
+        },
+        {
+          label: 'O(n²) — Bubble sort',
+          data: ns.map(n => n * n),
+          borderColor: '#d44040',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { labels: { color: '#888', font: { family: 'DM Mono', size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#1a1a1a' } },
+        y: { ticks: { color: '#555', font: { family: 'DM Mono', size: 10 } }, grid: { color: '#1a1a1a' } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════ EXAMPLES
+const examples = [
+  {
+    title: 'Example 1 — Single loop',
+    code: `for i in range(n):
+    print(arr[i])`,
+    answer: 'O(n)',
+    badgeClass: 'badge-yellow',
+    explanation: 'One loop, iterates n times. Work per iteration is O(1). Total: n × 1 = O(n).'
+  },
+  {
+    title: 'Example 2 — Two loops',
+    code: `for i in range(n):
+    process(arr[i])
+for j in range(n):
+    do_other(arr[j])`,
+    answer: 'O(n)',
+    badgeClass: 'badge-yellow',
+    explanation: 'Sequential not nested: O(n) + O(n) = O(2n) → O(n). A very common mistake is saying O(n²).'
+  },
+  {
+    title: 'Example 3 — Nested loops',
+    code: `for i in range(n):
+    for j in range(n):
+        print(arr[i], arr[j])`,
+    answer: 'O(n²)',
+    badgeClass: 'badge-orange',
+    explanation: 'Nested: O(n) × O(n) = O(n²). For each of n outer iterations, inner runs n times.'
+  },
+  {
+    title: 'Example 4 — Inner loop starts at i+1',
+    code: `for i in range(n):
+    for j in range(i+1, n):
+        check_pair(arr[i], arr[j])`,
+    answer: 'O(n²)',
+    badgeClass: 'badge-orange',
+    explanation: 'Inner runs n-1, n-2, ..., 1 times. Total = n(n-1)/2 ≈ n²/2. Drop the constant → O(n²). Smaller constant, same class.'
+  },
+  {
+    title: 'Example 5 — Binary search',
+    code: `lo, hi = 0, len(arr) - 1
+while lo <= hi:
+    mid = (lo + hi) // 2
+    if arr[mid] == target: return mid
+    elif arr[mid] < target: lo = mid + 1
+    else: hi = mid - 1`,
+    answer: 'O(log n)',
+    badgeClass: 'badge-lime',
+    explanation: 'Each iteration halves the search space. After k steps, n/2ᵏ = 1 → k = log₂(n).'
+  },
+  {
+    title: 'Example 6 — Two Sum with dict',
+    code: `seen = {}
+for num in nums:        # O(n) loop
+    comp = target - num
+    if comp in seen:    # O(1) dict lookup!
+        return ...
+    seen[num] = ...`,
+    answer: 'O(n)',
+    badgeClass: 'badge-yellow',
+    explanation: 'The loop is O(n). The `in seen` check is O(1) (hash table). O(n) × O(1) = O(n). If seen was a list, it would be O(n²).'
+  },
+  {
+    title: 'Example 7 — Staircase matrix search',
+    code: `row, col = 0, len(matrix[0]) - 1
+while row < len(matrix) and col >= 0:
+    if matrix[row][col] == target: return True
+    elif matrix[row][col] > target: col -= 1
+    else: row += 1`,
+    answer: 'O(n)',
+    badgeClass: 'badge-yellow',
+    explanation: 'n×n matrix. Each step either increments row or decrements col. Max steps = n + n = 2n (can\'t do both more than n times). So O(n) not O(n²).'
+  },
+];
+
+function initExamples() {
+  const grid = document.getElementById('examplesGrid');
+  if (grid.children.length > 0) return;
+  examples.forEach((ex, i) => {
+    const card = document.createElement('div');
+    card.className = 'example-card';
+    card.innerHTML = `
+      <div class="ex-header">
+        <span class="ex-title">${ex.title}</span>
+        <span class="badge ${ex.badgeClass}" style="opacity:0" id="ans-badge-${i}">${ex.answer}</span>
+      </div>
+      <pre>${ex.code}</pre>
+      <button class="action-btn" onclick="revealExample(${i})">Reveal answer</button>
+      <div id="ans-exp-${i}" style="display:none;margin-top:10px;font-size:0.78rem;color:#888;line-height:1.5;border-top:1px solid #1e1e1e;padding-top:10px">${ex.explanation}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function revealExample(i) {
+  document.getElementById(`ans-badge-${i}`).style.opacity = '1';
+  document.getElementById(`ans-exp-${i}`).style.display = 'block';
+  event.target.style.display = 'none';
+}
+
+// ═══════════════════════════════════ INIT
+document.addEventListener('DOMContentLoaded', () => {
+  initBS();
+});
+</script>
+</body>
+</html>

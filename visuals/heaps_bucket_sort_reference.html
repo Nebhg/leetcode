@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heaps & Bucket Sort Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f0f0e;
+    color: #e8e8e4;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+
+  h1 { font-size: 1.6rem; font-weight: 600; color: #c8f060; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 28px; }
+
+  .tabs {
+    display: flex; gap: 4px; margin-bottom: 24px;
+    border-bottom: 1px solid #222; padding-bottom: 0; flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: none; border: none; color: #666;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    padding: 8px 14px; cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s; white-space: nowrap;
+  }
+  .tab-btn:hover { color: #aaa; }
+  .tab-btn.active { color: #c8f060; border-bottom-color: #c8f060; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .card {
+    background: #161616; border: 1px solid #222;
+    border-radius: 10px; padding: 20px 24px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: #ddd; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th {
+    text-align: left; padding: 8px 12px; color: #888; font-weight: 500;
+    border-bottom: 1px solid #222; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; vertical-align: top; line-height: 1.5; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1a1a1a; }
+
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; white-space: nowrap;
+  }
+  .badge-green  { background: #1a2e0a; color: #7ecb3a; border: 1px solid #2d4a15; }
+  .badge-yellow { background: #2a2400; color: #d4b030; border: 1px solid #4a3e00; }
+  .badge-orange { background: #2a1800; color: #d47830; border: 1px solid #4a2a00; }
+  .badge-blue   { background: #0a1a2a; color: #4ab0f0; border: 1px solid #1a3a5a; }
+  .badge-purple { background: #1a0a2a; color: #9040cc; border: 1px solid #2a1a3a; }
+
+  pre {
+    background: #111; border: 1px solid #1e1e1e; border-radius: 7px;
+    padding: 14px 16px; font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    line-height: 1.6; color: #ccc; overflow-x: auto; margin: 10px 0;
+  }
+  .kw  { color: #c8f060; }
+  .fn  { color: #82cfff; }
+  .cm  { color: #555; }
+  .str { color: #f0a060; }
+  .num { color: #f07090; }
+
+  .grid-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .grid-box { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 14px; }
+  .grid-box h3 { font-family: 'DM Mono', monospace; color: #c8f060; font-size: 0.82rem; margin-bottom: 8px; }
+  .grid-box p { font-size: 0.78rem; color: #666; line-height: 1.5; }
+
+  .note-box {
+    background: #0e1a06; border: 1px solid #1e3010; border-radius: 6px;
+    padding: 10px 14px; font-size: 0.8rem; color: #7ecb3a; margin-top: 10px; line-height: 1.5;
+  }
+  .warn-box {
+    background: #1a1000; border: 1px solid #3a2a00; border-radius: 6px;
+    padding: 10px 14px; font-size: 0.8rem; color: #d4a030; margin-top: 10px; line-height: 1.5;
+  }
+  .correction-box {
+    background: #1a0a0a; border: 1px solid #3a1515; border-radius: 6px;
+    padding: 10px 14px; font-size: 0.8rem; color: #e06060; margin-top: 10px; line-height: 1.5;
+  }
+
+  /* HEAP SVG */
+  .heap-svg-wrap { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+  .heap-diagram { text-align: center; }
+  .heap-diagram h3 { font-family: 'DM Mono', monospace; color: #c8f060; font-size: 0.82rem; margin-bottom: 8px; }
+
+  /* ARRAY VISUALIZER */
+  .array-viz { display: flex; gap: 0; margin: 12px 0; flex-wrap: wrap; }
+  .array-cell {
+    min-width: 44px; height: 44px; border: 1px solid #2a2a2a;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.78rem;
+    background: #161616; position: relative;
+  }
+  .array-cell .cell-idx { font-size: 0.6rem; color: #444; position: absolute; top: 3px; left: 4px; }
+  .array-cell .cell-val { color: #c8f060; font-weight: 500; }
+  .array-cell.highlight { background: #1a2e0a; border-color: #4a6020; }
+  .array-cell.dim { opacity: 0.3; }
+
+  /* BUCKET VIZ */
+  .bucket-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; align-items: flex-end; }
+  .bucket {
+    min-width: 52px; border: 1px solid #2a2a2a; border-radius: 4px;
+    background: #111; text-align: center; padding-bottom: 4px;
+  }
+  .bucket-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #444; padding: 4px 4px 2px; border-bottom: 1px solid #1e1e1e; }
+  .bucket-items { padding: 4px; min-height: 32px; display: flex; flex-direction: column; gap: 3px; align-items: center; }
+  .bucket-item { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #c8f060; background: #1a2e0a; border: 1px solid #2d4a15; border-radius: 3px; padding: 2px 6px; }
+  .bucket.active-bucket { border-color: #4a6020; background: #0e1a06; }
+  .bucket.empty-bucket { opacity: 0.35; }
+
+  /* ACTION BTN */
+  .action-btn {
+    background: #1e2e08; border: 1px solid #4a5e14; color: #c8f060;
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+    padding: 6px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; transition: all 0.15s;
+  }
+  .action-btn:hover { background: #2a3e10; }
+
+  .step-info {
+    font-size: 0.78rem; color: #888; margin: 8px 0; min-height: 20px;
+    font-family: 'DM Mono', monospace; line-height: 1.5;
+  }
+
+  /* INDEX FORMULA */
+  .formula-grid { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+  .formula-box {
+    background: #111; border: 1px solid #1e1e1e; border-radius: 8px;
+    padding: 12px 16px; flex: 1; min-width: 160px;
+  }
+  .formula-box .f-label { font-size: 0.72rem; color: #555; margin-bottom: 6px; }
+  .formula-box .f-expr { font-family: 'DM Mono', monospace; color: #c8f060; font-size: 0.9rem; }
+  .formula-box .f-note { font-size: 0.7rem; color: #444; margin-top: 4px; }
+
+  @media (max-width: 600px) { body { padding: 20px 14px; } }
+</style>
+</head>
+<body>
+
+<h1>Heaps & Bucket Sort Reference</h1>
+<p class="subtitle">BofA Round 2 Prep · Top K Frequent Elements · Complete binary trees · Corrected notes</p>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('heaps')">Heaps</button>
+  <button class="tab-btn" onclick="showTab('diagrams')">Diagrams</button>
+  <button class="tab-btn" onclick="showTab('operations')">Operations & Complexity</button>
+  <button class="tab-btn" onclick="showTab('bucket')">Bucket Sort</button>
+  <button class="tab-btn" onclick="showTab('topk')">Top K — Both Approaches</button>
+  <button class="tab-btn" onclick="showTab('python')">Python heapq</button>
+</div>
+
+<!-- ═══════════════════════════ TAB 1: HEAPS OVERVIEW -->
+<div id="tab-heaps" class="tab-content active">
+
+  <div class="correction-box" style="margin-bottom:16px">
+    ⚠ <strong>Note correction from your handwritten notes:</strong><br><br>
+    You wrote "a heap is a <em>partially complete BST</em>" — two things to fix:<br><br>
+    1. It's not a BST. A Binary Search Tree has a strict ordering: left child &lt; parent &lt; right child. A heap has <strong>no left/right ordering</strong> — only parent vs children. A parent is always greater than (max heap) or less than (min heap) both its children, but left and right children have no relationship to each other.<br><br>
+    2. "Partially complete" is the wrong term. The correct term is <strong>complete binary tree</strong> — your written description was right ("all levels except the last need to be full, and the bottom level is filled from the left"). Just use that definition directly.
+  </div>
+
+  <div class="card">
+    <h2>What Is a Heap?</h2>
+    <p style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:16px">A heap is a <strong style="color:#c8f060">complete binary tree</strong> that satisfies the <strong style="color:#c8f060">heap property</strong>. It is stored as an array — no pointers needed.</p>
+
+    <div class="grid-section">
+      <div class="grid-box">
+        <h3>Complete binary tree</h3>
+        <p>Every level is fully filled except possibly the last level, which is filled from the left. This is what makes array storage work — there are no gaps.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Heap property — Max Heap</h3>
+        <p>Every parent node is <strong style="color:#c8f060">greater than or equal to</strong> both its children. The largest element is always at the root (index 0 in Python).</p>
+      </div>
+      <div class="grid-box">
+        <h3>Heap property — Min Heap</h3>
+        <p>Every parent node is <strong style="color:#c8f060">less than or equal to</strong> both its children. The smallest element is always at the root. Python's heapq is a min heap.</p>
+      </div>
+      <div class="grid-box">
+        <h3>NOT a BST</h3>
+        <p>In a BST, left child &lt; parent &lt; right child — giving you sorted order. In a heap, left and right children have <em>no ordering relationship</em> with each other. Only parent vs children is guaranteed.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Array Representation</h2>
+    <p style="font-size:0.85rem;color:#888;margin-bottom:14px">A complete binary tree maps perfectly onto an array. No pointers. The parent-child relationships are computed from the index.</p>
+
+    <p style="font-size:0.8rem;color:#666;margin-bottom:8px">Max heap array representation: root at index 0</p>
+    <div class="array-viz" id="heapArray"></div>
+
+    <div class="formula-grid" style="margin-top:16px">
+      <div class="formula-box">
+        <div class="f-label">Left child of i</div>
+        <div class="f-expr">2i + 1</div>
+        <div class="f-note">Python (0-indexed)</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">Right child of i</div>
+        <div class="f-expr">2i + 2</div>
+        <div class="f-note">Python (0-indexed)</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">Parent of i</div>
+        <div class="f-expr">⌊(i − 1) / 2⌋</div>
+        <div class="f-note">Python (0-indexed)</div>
+      </div>
+    </div>
+
+    <div class="warn-box">
+      ⚠ Your notes had the formulas for a <strong>1-indexed</strong> array (left = 2i, right = 2i+1, parent = ⌊i/2⌋). Python lists are <strong>0-indexed</strong>, so the formulas above are the ones you'd actually use in code. Both are correct in their respective contexts.
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB 2: DIAGRAMS -->
+<div id="tab-diagrams" class="tab-content">
+
+  <div class="card">
+    <h2>Max Heap vs Min Heap</h2>
+    <p style="font-size:0.85rem;color:#888;margin-bottom:16px">From your notes — verified correct. Parent is always larger (max) or smaller (min) than both children. No ordering between left and right children.</p>
+
+    <div class="heap-svg-wrap">
+      <div class="heap-diagram">
+        <h3>Max Heap</h3>
+        <svg width="300" height="200" viewBox="0 0 300 200">
+          <!-- Edges -->
+          <line x1="150" y1="30" x2="85" y2="80" stroke="#2d4a15" stroke-width="1.5"/>
+          <line x1="150" y1="30" x2="215" y2="80" stroke="#2d4a15" stroke-width="1.5"/>
+          <line x1="85" y1="80" x2="52" y2="140" stroke="#2d4a15" stroke-width="1.5"/>
+          <line x1="85" y1="80" x2="118" y2="140" stroke="#2d4a15" stroke-width="1.5"/>
+          <line x1="215" y1="80" x2="182" y2="140" stroke="#2d4a15" stroke-width="1.5"/>
+          <line x1="215" y1="80" x2="248" y2="140" stroke="#2d4a15" stroke-width="1.5"/>
+          <!-- Nodes -->
+          <circle cx="150" cy="30" r="20" fill="#1a2e0a" stroke="#4a6020" stroke-width="1.5"/>
+          <text x="150" y="35" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#c8f060">21</text>
+          <circle cx="85" cy="80" r="20" fill="#141e08" stroke="#2d4a15" stroke-width="1.5"/>
+          <text x="85" y="85" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#7ecb3a">17</text>
+          <circle cx="215" cy="80" r="20" fill="#141e08" stroke="#2d4a15" stroke-width="1.5"/>
+          <text x="215" y="85" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#7ecb3a">16</text>
+          <circle cx="52" cy="140" r="20" fill="#101408" stroke="#1e280e" stroke-width="1.5"/>
+          <text x="52" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#5a8a30">14</text>
+          <circle cx="118" cy="140" r="20" fill="#101408" stroke="#1e280e" stroke-width="1.5"/>
+          <text x="118" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#5a8a30">9</text>
+          <circle cx="182" cy="140" r="20" fill="#101408" stroke="#1e280e" stroke-width="1.5"/>
+          <text x="182" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#5a8a30">12</text>
+          <circle cx="248" cy="140" r="20" fill="#101408" stroke="#1e280e" stroke-width="1.5"/>
+          <text x="248" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#5a8a30">13</text>
+          <!-- Labels -->
+          <text x="150" y="178" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#444">array: [21, 17, 16, 14, 9, 12, 13]</text>
+          <text x="150" y="192" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#333">max always at root (index 0)</text>
+        </svg>
+      </div>
+
+      <div class="heap-diagram">
+        <h3>Min Heap</h3>
+        <svg width="300" height="200" viewBox="0 0 300 200">
+          <!-- Edges -->
+          <line x1="150" y1="30" x2="85" y2="80" stroke="#1a3050" stroke-width="1.5"/>
+          <line x1="150" y1="30" x2="215" y2="80" stroke="#1a3050" stroke-width="1.5"/>
+          <line x1="85" y1="80" x2="52" y2="140" stroke="#1a3050" stroke-width="1.5"/>
+          <line x1="85" y1="80" x2="118" y2="140" stroke="#1a3050" stroke-width="1.5"/>
+          <line x1="215" y1="80" x2="182" y2="140" stroke="#1a3050" stroke-width="1.5"/>
+          <line x1="215" y1="80" x2="248" y2="140" stroke="#1a3050" stroke-width="1.5"/>
+          <!-- Nodes -->
+          <circle cx="150" cy="30" r="20" fill="#0a1a2e" stroke="#2a5080" stroke-width="1.5"/>
+          <text x="150" y="35" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#4ab0f0">1</text>
+          <circle cx="85" cy="80" r="20" fill="#081420" stroke="#1a3050" stroke-width="1.5"/>
+          <text x="85" y="85" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#3090d0">2</text>
+          <circle cx="215" cy="80" r="20" fill="#081420" stroke="#1a3050" stroke-width="1.5"/>
+          <text x="215" y="85" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#3090d0">3</text>
+          <circle cx="52" cy="140" r="20" fill="#060e18" stroke="#122040" stroke-width="1.5"/>
+          <text x="52" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#2070b0">7</text>
+          <circle cx="118" cy="140" r="20" fill="#060e18" stroke="#122040" stroke-width="1.5"/>
+          <text x="118" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#2070b0">10</text>
+          <circle cx="182" cy="140" r="20" fill="#060e18" stroke="#122040" stroke-width="1.5"/>
+          <text x="182" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#2070b0">14</text>
+          <circle cx="248" cy="140" r="20" fill="#060e18" stroke="#122040" stroke-width="1.5"/>
+          <text x="248" y="145" text-anchor="middle" font-family="DM Mono" font-size="13" fill="#2070b0">16</text>
+          <!-- Labels -->
+          <text x="150" y="178" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#444">array: [1, 2, 3, 7, 10, 14, 16]</text>
+          <text x="150" y="192" text-anchor="middle" font-family="DM Sans" font-size="10" fill="#333">min always at root (index 0)</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="note-box">
+      💡 Notice that in the min heap, the right child of node 2 is 10, and the left child of node 3 is 14 — 14 &gt; 10, but they're on different branches. That's fine. The heap property only cares about parent vs its direct children, not cross-branch ordering.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Interactive — Verify the Index Formulas</h2>
+    <p style="font-size:0.85rem;color:#888;margin-bottom:12px">Click a node in the array to see its parent and children.</p>
+    <div class="array-viz" id="interactiveArray"></div>
+    <div class="step-info" id="indexInfo">Click any cell to see relationships</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB 3: OPERATIONS -->
+<div id="tab-operations" class="tab-content">
+
+  <div class="card">
+    <h2>Heap Operations & Complexity</h2>
+    <table>
+      <thead>
+        <tr><th>Operation</th><th>Complexity</th><th>How it works</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code style="font-family:'DM Mono',monospace;color:#82cfff">insert(val)</code></td>
+          <td><span class="badge badge-green">O(log n)</span></td>
+          <td>Add to end of array (last position in tree), then <strong>bubble up</strong> — swap with parent while heap property is violated. At most log n swaps (tree height).</td>
+        </tr>
+        <tr>
+          <td><code style="font-family:'DM Mono',monospace;color:#82cfff">extract_max() / extract_min()</code></td>
+          <td><span class="badge badge-green">O(log n)</span></td>
+          <td>Remove root. Move last element to root. <strong>Bubble down</strong> (heapify down) — swap with larger child (max heap) until heap property restored. At most log n swaps.</td>
+        </tr>
+        <tr>
+          <td><code style="font-family:'DM Mono',monospace;color:#82cfff">peek() / get_max() / get_min()</code></td>
+          <td><span class="badge badge-green">O(1)</span></td>
+          <td>Root is always the max (or min). Just return index 0.</td>
+        </tr>
+        <tr>
+          <td><code style="font-family:'DM Mono',monospace;color:#82cfff">heapify(array)</code></td>
+          <td><span class="badge badge-green">O(n)</span></td>
+          <td>Build a heap from an unsorted array. Process from middle to root, bubble down each. Surprisingly O(n) not O(n log n) — most nodes are near the bottom and do little work.</td>
+        </tr>
+        <tr>
+          <td><code style="font-family:'DM Mono',monospace;color:#82cfff">heappush + heappop × k</code></td>
+          <td><span class="badge badge-yellow">O(n log k)</span></td>
+          <td>For Top K Frequent: push n items O(log k) each. This is why bucket sort beats it for Top K — bucket sort is O(n) flat.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Bubble Up vs Bubble Down</h2>
+    <div class="grid-section">
+      <div class="grid-box">
+        <h3>Bubble Up (after insert)</h3>
+        <p style="margin-bottom:8px">After inserting at the end, compare with parent. If violates heap property, swap. Repeat until fixed or reach root.</p>
+        <pre><span class="cm"># insert 25 into max heap [21,17,16,14,9,12,13]</span>
+<span class="cm"># 1. append: [..., 25] — at index 7</span>
+<span class="cm"># 2. parent of 7 = (7-1)//2 = 3 → value 14</span>
+<span class="cm"># 3. 25 > 14 → swap</span>
+<span class="cm"># 4. now at index 3, parent = 1 → value 17</span>
+<span class="cm"># 5. 25 > 17 → swap</span>
+<span class="cm"># 6. now at index 1, parent = 0 → value 21</span>
+<span class="cm"># 7. 25 > 21 → swap → 25 is new root ✓</span></pre>
+      </div>
+      <div class="grid-box">
+        <h3>Bubble Down (after extract)</h3>
+        <p style="margin-bottom:8px">Remove root. Put last element at root. Compare with both children, swap with the larger (max heap). Repeat until fixed or reach leaf.</p>
+        <pre><span class="cm"># extract max (21) from [21,17,16,14,9,12,13]</span>
+<span class="cm"># 1. remove 21, put last (13) at root</span>
+<span class="cm"># 2. [13, 17, 16, 14, 9, 12]</span>
+<span class="cm"># 3. children of 0: index 1 (17), index 2 (16)</span>
+<span class="cm"># 4. 13 < 17 → swap with larger child</span>
+<span class="cm"># 5. [17, 13, 16, 14, 9, 12]</span>
+<span class="cm"># 6. children of 1: index 3 (14), index 4 (9)</span>
+<span class="cm"># 7. 13 < 14 → swap</span>
+<span class="cm"># 8. [17, 14, 16, 13, 9, 12] ✓</span></pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB 4: BUCKET SORT -->
+<div id="tab-bucket" class="tab-content">
+
+  <div class="correction-box" style="margin-bottom:16px">
+    ⚠ <strong>Corrections from your notes:</strong><br><br>
+    1. You wrote "using an array would be O(n)" as if it's a downside. Bucket sort IS O(n) — that's the <em>advantage</em> over using a heap (which is O(n log k)).<br><br>
+    2. You wrote "creating many empty key/value pairs". Buckets are a <strong>list of lists</strong>, not key/value pairs. The index is the frequency. <code style="font-family:'DM Mono',monospace">buckets[3]</code> holds all elements that appear exactly 3 times. There are no keys — the index IS the key.
+  </div>
+
+  <div class="card">
+    <h2>How Bucket Sort Works for Top K Frequent</h2>
+    <p style="font-size:0.85rem;color:#888;line-height:1.6;margin-bottom:16px">
+      Key insight: the maximum frequency any element can have is <code style="font-family:'DM Mono',monospace">n</code> (if all elements are the same). So we create <code style="font-family:'DM Mono',monospace">n + 1</code> buckets, where <strong>the index = frequency</strong>. Each bucket is a list of elements with that frequency.
+    </p>
+
+    <p style="font-size:0.8rem;color:#888;margin-bottom:6px">Input: <code style="font-family:'DM Mono',monospace">[1, 1, 2, 1, 2, 55]</code> — k = 2</p>
+
+    <div style="margin:16px 0">
+      <p style="font-size:0.78rem;color:#555;font-family:'DM Mono',monospace;margin-bottom:8px">Step 1 — Count frequencies (hashmap):</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="background:#111;border:1px solid #1e1e1e;border-radius:6px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.78rem;color:#c8f060">1 → 3</div>
+        <div style="background:#111;border:1px solid #1e1e1e;border-radius:6px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.78rem;color:#c8f060">2 → 2</div>
+        <div style="background:#111;border:1px solid #1e1e1e;border-radius:6px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.78rem;color:#c8f060">55 → 1</div>
+      </div>
+    </div>
+
+    <div style="margin:16px 0">
+      <p style="font-size:0.78rem;color:#555;font-family:'DM Mono',monospace;margin-bottom:8px">Step 2 — Place each element into its frequency bucket (index = frequency):</p>
+      <div class="bucket-row">
+        <div class="bucket empty-bucket">
+          <div class="bucket-label">freq 0</div>
+          <div class="bucket-items"><span style="color:#333;font-size:0.7rem">—</span></div>
+        </div>
+        <div class="bucket active-bucket">
+          <div class="bucket-label">freq 1</div>
+          <div class="bucket-items"><div class="bucket-item">55</div></div>
+        </div>
+        <div class="bucket active-bucket">
+          <div class="bucket-label">freq 2</div>
+          <div class="bucket-items"><div class="bucket-item">2</div></div>
+        </div>
+        <div class="bucket active-bucket">
+          <div class="bucket-label">freq 3</div>
+          <div class="bucket-items"><div class="bucket-item">1</div></div>
+        </div>
+        <div class="bucket empty-bucket">
+          <div class="bucket-label">freq 4</div>
+          <div class="bucket-items"><span style="color:#333;font-size:0.7rem">—</span></div>
+        </div>
+        <div class="bucket empty-bucket">
+          <div class="bucket-label">freq 5</div>
+          <div class="bucket-items"><span style="color:#333;font-size:0.7rem">—</span></div>
+        </div>
+        <div class="bucket empty-bucket">
+          <div class="bucket-label">freq 6</div>
+          <div class="bucket-items"><span style="color:#333;font-size:0.7rem">—</span></div>
+        </div>
+      </div>
+      <p style="font-size:0.72rem;color:#444;font-family:'DM Mono',monospace">← iterate backwards from index 6 → pick top k elements</p>
+    </div>
+
+    <div style="margin:16px 0">
+      <p style="font-size:0.78rem;color:#555;font-family:'DM Mono',monospace;margin-bottom:8px">Step 3 — Read from high frequency to low, collect k elements:</p>
+      <p style="font-size:0.82rem;color:#7ecb3a">freq 6 → empty | freq 5 → empty | freq 4 → empty | freq 3 → [1] ✓ | freq 2 → [2] ✓ | k=2 reached → return [1, 2]</p>
+    </div>
+
+    <div class="note-box">
+      💡 <strong>Why O(n)?</strong> Counting frequencies is O(n). Building the buckets array is O(n). Reading back is O(n). No sorting — you never compare elements against each other. The frequency index does the ordering implicitly.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Bucket Sort — The Code</h2>
+    <pre><span class="kw">def</span> <span class="fn">topKFrequent</span>(nums, k):
+    <span class="cm"># Step 1: count frequencies</span>
+    count = {}
+    <span class="kw">for</span> num <span class="kw">in</span> nums:
+        count[num] = count.<span class="fn">get</span>(num, <span class="num">0</span>) + <span class="num">1</span>
+
+    <span class="cm"># Step 2: create n+1 buckets (index = frequency)</span>
+    <span class="cm"># bucket[i] = list of elements with frequency i</span>
+    freq = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums) + <span class="num">1</span>)]
+    <span class="kw">for</span> num, cnt <span class="kw">in</span> count.<span class="fn">items</span>():
+        freq[cnt].<span class="fn">append</span>(num)
+
+    <span class="cm"># Step 3: read from high frequency to low</span>
+    result = []
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(freq) - <span class="num">1</span>, <span class="num">0</span>, -<span class="num">1</span>):
+        <span class="kw">for</span> num <span class="kw">in</span> freq[i]:
+            result.<span class="fn">append</span>(num)
+            <span class="kw">if</span> <span class="fn">len</span>(result) == k:
+                <span class="kw">return</span> result</pre>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB 5: TOP K COMPARISON -->
+<div id="tab-topk" class="tab-content">
+
+  <div class="card">
+    <h2>Two Approaches to Top K Frequent</h2>
+    <table>
+      <thead>
+        <tr><th>Approach</th><th>Time</th><th>Space</th><th>When to use</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Bucket Sort</strong></td>
+          <td><span class="badge badge-green">O(n)</span></td>
+          <td><span class="badge badge-yellow">O(n)</span></td>
+          <td>When you need the best possible time complexity. Frequency range is bounded by n so buckets don't blow up.</td>
+        </tr>
+        <tr>
+          <td><strong>Min Heap of size k</strong></td>
+          <td><span class="badge badge-yellow">O(n log k)</span></td>
+          <td><span class="badge badge-green">O(k)</span></td>
+          <td>When k is much smaller than n and memory matters more than speed. Only keeps k elements in the heap at once.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note-box" style="margin-top:14px">
+      💡 For the interview: if they ask "what's the optimal solution?", it's bucket sort at O(n). If they ask "can you do it with a heap?", explain the O(n log k) approach. Knowing both shows depth.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Bucket Sort Approach</h2>
+    <pre><span class="kw">def</span> <span class="fn">topKFrequent</span>(nums, k):
+    count = {}
+    <span class="kw">for</span> num <span class="kw">in</span> nums:
+        count[num] = count.<span class="fn">get</span>(num, <span class="num">0</span>) + <span class="num">1</span>
+
+    freq = [[] <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(nums) + <span class="num">1</span>)]
+    <span class="kw">for</span> num, cnt <span class="kw">in</span> count.<span class="fn">items</span>():
+        freq[cnt].<span class="fn">append</span>(num)
+
+    result = []
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(freq) - <span class="num">1</span>, <span class="num">0</span>, -<span class="num">1</span>):
+        <span class="kw">for</span> num <span class="kw">in</span> freq[i]:
+            result.<span class="fn">append</span>(num)
+            <span class="kw">if</span> <span class="fn">len</span>(result) == k:
+                <span class="kw">return</span> result
+
+<span class="cm"># Time: O(n) — count O(n) + build buckets O(n) + read O(n)</span>
+<span class="cm"># Space: O(n) — count dict + freq array both O(n)</span></pre>
+  </div>
+
+  <div class="card">
+    <h2>Heap Approach (O(n log k))</h2>
+    <pre><span class="kw">import</span> heapq
+
+<span class="kw">def</span> <span class="fn">topKFrequent</span>(nums, k):
+    count = {}
+    <span class="kw">for</span> num <span class="kw">in</span> nums:
+        count[num] = count.<span class="fn">get</span>(num, <span class="num">0</span>) + <span class="num">1</span>
+
+    <span class="cm"># heapq.nlargest: O(n log k)</span>
+    <span class="cm"># key=lambda: sort by frequency value, not the number itself</span>
+    <span class="kw">return</span> heapq.<span class="fn">nlargest</span>(k, count.<span class="fn">keys</span>(), key=<span class="kw">lambda</span> x: count[x])
+
+<span class="cm"># OR manually with a min heap of size k:</span>
+<span class="kw">def</span> <span class="fn">topKFrequent_heap</span>(nums, k):
+    count = {}
+    <span class="kw">for</span> num <span class="kw">in</span> nums:
+        count[num] = count.<span class="fn">get</span>(num, <span class="num">0</span>) + <span class="num">1</span>
+
+    heap = []
+    <span class="kw">for</span> num, cnt <span class="kw">in</span> count.<span class="fn">items</span>():
+        heapq.<span class="fn">heappush</span>(heap, (cnt, num))   <span class="cm"># push (freq, num)</span>
+        <span class="kw">if</span> <span class="fn">len</span>(heap) > k:
+            heapq.<span class="fn">heappop</span>(heap)             <span class="cm"># remove least frequent</span>
+
+    <span class="kw">return</span> [num <span class="kw">for</span> cnt, num <span class="kw">in</span> heap]
+
+<span class="cm"># Time: O(n log k) — n pushes, each O(log k) since heap stays size k</span>
+<span class="cm"># Space: O(k) — heap only holds k elements at a time</span></pre>
+
+    <div class="warn-box">
+      ⚠ The lambda in <code style="font-family:'DM Mono',monospace">key=lambda x: count[x]</code> — this tells heapq to rank by frequency (count[x]), not by the value of the number itself. Without this, it would sort by the numbers (1, 2, 55) not by how often they appear (3, 2, 1).
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════ TAB 6: PYTHON HEAPQ -->
+<div id="tab-python" class="tab-content">
+
+  <div class="card">
+    <h2>Python heapq — Key Facts</h2>
+    <div class="grid-section">
+      <div class="grid-box">
+        <h3>Min heap only</h3>
+        <p>Python's heapq is always a min heap. The smallest element is always at index 0. To simulate a max heap, negate your values: push <code style="font-family:'DM Mono',monospace">-val</code>, pop and negate the result.</p>
+      </div>
+      <div class="grid-box">
+        <h3>heapq operates on a list</h3>
+        <p>You don't create a Heap object. You pass a regular Python list to heapq functions. The list is modified in-place to maintain the heap invariant.</p>
+      </div>
+      <div class="grid-box">
+        <h3>Tuple ordering</h3>
+        <p>Push tuples <code style="font-family:'DM Mono',monospace">(priority, value)</code> to control ordering. heapq compares tuples element by element — first by priority, then by value if tied.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>heapq Cheat Sheet</h2>
+    <pre><span class="kw">import</span> heapq
+
+heap = []
+
+<span class="cm"># Push — O(log n)</span>
+heapq.<span class="fn">heappush</span>(heap, <span class="num">5</span>)
+heapq.<span class="fn">heappush</span>(heap, <span class="num">1</span>)
+heapq.<span class="fn">heappush</span>(heap, <span class="num">3</span>)
+<span class="cm"># heap = [1, 5, 3] — 1 is at root (min)</span>
+
+<span class="cm"># Pop min — O(log n)</span>
+val = heapq.<span class="fn">heappop</span>(heap)   <span class="cm"># returns 1</span>
+
+<span class="cm"># Peek min — O(1)</span>
+val = heap[<span class="num">0</span>]               <span class="cm"># don't pop, just look</span>
+
+<span class="cm"># Build heap from list — O(n)</span>
+nums = [<span class="num">3</span>, <span class="num">1</span>, <span class="num">4</span>, <span class="num">1</span>, <span class="num">5</span>]
+heapq.<span class="fn">heapify</span>(nums)          <span class="cm"># modifies in place</span>
+
+<span class="cm"># Get k largest — O(n log k)</span>
+top3 = heapq.<span class="fn">nlargest</span>(<span class="num">3</span>, nums)
+
+<span class="cm"># Get k smallest — O(n log k)</span>
+bot3 = heapq.<span class="fn">nsmallest</span>(<span class="num">3</span>, nums)
+
+<span class="cm"># Max heap — negate values</span>
+heapq.<span class="fn">heappush</span>(heap, -<span class="num">21</span>)   <span class="cm"># push negated</span>
+max_val = -heapq.<span class="fn">heappop</span>(heap)  <span class="cm"># negate on pop</span>
+
+<span class="cm"># Tuple push — sort by first element</span>
+heapq.<span class="fn">heappush</span>(heap, (<span class="num">3</span>, <span class="str">"apple"</span>))
+heapq.<span class="fn">heappush</span>(heap, (<span class="num">1</span>, <span class="str">"banana"</span>))
+heapq.<span class="fn">heappop</span>(heap)  <span class="cm"># returns (1, "banana")</span></pre>
+  </div>
+
+  <div class="card">
+    <h2>Interview One-Liners</h2>
+    <table>
+      <thead><tr><th>They ask</th><th>You say</th></tr></thead>
+      <tbody>
+        <tr><td>What is a heap?</td><td>A complete binary tree satisfying the heap property — parent always greater than (max heap) or less than (min heap) both children. Stored as an array.</td></tr>
+        <tr><td>Why not a BST?</td><td>A BST has left &lt; parent &lt; right ordering. A heap only guarantees parent vs children — no left/right ordering. Different use case: heaps are optimised for fast min/max access, not search.</td></tr>
+        <tr><td>What's insert complexity?</td><td>O(log n) — add to end, bubble up. At most log n swaps (height of tree).</td></tr>
+        <tr><td>Why is bucket sort O(n)?</td><td>Frequency range is bounded by n, so we create n+1 buckets. Count frequencies O(n), fill buckets O(n), read back O(n). No comparisons between elements — the index does the ordering.</td></tr>
+        <tr><td>When would you use a heap over bucket sort for Top K?</td><td>When k is small and memory matters — the heap stays size k so it's O(k) space. Bucket sort is always O(n) space regardless of k.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'heaps') renderHeapArray();
+  if (name === 'diagrams') renderInteractiveArray();
+}
+
+const maxHeapArr = [21, 17, 16, 14, 9, 12, 13];
+
+function renderHeapArray() {
+  const container = document.getElementById('heapArray');
+  if (!container || container.children.length > 0) return;
+  maxHeapArr.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'array-cell';
+    cell.innerHTML = `<span class="cell-idx">${i}</span><span class="cell-val">${val}</span>`;
+    container.appendChild(cell);
+  });
+}
+
+function renderInteractiveArray() {
+  const container = document.getElementById('interactiveArray');
+  if (!container || container.children.length > 0) return;
+  maxHeapArr.forEach((val, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'array-cell';
+    cell.style.cursor = 'pointer';
+    cell.innerHTML = `<span class="cell-idx">${i}</span><span class="cell-val">${val}</span>`;
+    cell.onclick = () => highlightRelatives(i);
+    container.appendChild(cell);
+  });
+}
+
+function highlightRelatives(i) {
+  const cells = document.querySelectorAll('#interactiveArray .array-cell');
+  cells.forEach(c => { c.classList.remove('highlight'); c.style.borderColor = ''; });
+
+  const left = 2 * i + 1;
+  const right = 2 * i + 2;
+  const parent = i === 0 ? -1 : Math.floor((i - 1) / 2);
+
+  cells[i].style.borderColor = '#c8f060';
+  cells[i].style.background = '#1a2e0a';
+
+  let info = `Index ${i} (value ${maxHeapArr[i]}): `;
+  const parts = [];
+
+  if (parent >= 0) {
+    cells[parent].classList.add('highlight');
+    parts.push(`parent = index ${parent} (value ${maxHeapArr[parent]})`);
+  } else {
+    parts.push('no parent (this is the root)');
+  }
+  if (left < maxHeapArr.length) {
+    cells[left].classList.add('highlight');
+    parts.push(`left child = index ${left} (value ${maxHeapArr[left]})`);
+  } else {
+    parts.push('no left child');
+  }
+  if (right < maxHeapArr.length) {
+    cells[right].classList.add('highlight');
+    parts.push(`right child = index ${right} (value ${maxHeapArr[right]})`);
+  } else {
+    parts.push('no right child');
+  }
+
+  document.getElementById('indexInfo').textContent = info + parts.join(' · ');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderHeapArray();
+});
+</script>
+</body>
+</html>
