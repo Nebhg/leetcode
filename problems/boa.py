@@ -25,6 +25,21 @@ class Solution:
                 return True
             seen.add(c)
         return False
+    
+    def validParentheses(self, input: str) -> bool:
+        #take an input of a list of type string that contains 
+        # what type of data can we use to solve this problem? a stack
+        stack = []
+        opening = ['(', '{', '[']
+        closing = [')', '}', ']']
+
+        # iterate over the input str
+        # push all elements on to the stack
+        for c in input:
+            stack.append(c)
+        
+        # pop the top of the stack and check the 
+
 
     def group_anagrams(self, strs: List[str]) -> List[List[str]]:
 
@@ -48,15 +63,30 @@ class Solution:
         return list(result.values())
 
     def top_k(self, nums: List[int], k: int) -> List[int]:
-        max_length = len(nums) + 1
-        count = [[] for _ in range(max_length)]
+        # use bucket sort to solve this problem
+        # use index to count groups of items that have this value
+        # then return the k items starting form the end of the list 
+        # what type of data structure do we want here? a hashmap to count the frequency
+        
+        # count the frequency of using a hashmap
+        # create bucket lists where the index = frequency 
+        count = {}
 
-        for k, num in nums:
-            if num in count:
-                count[k] += 1
-            
-            
-            
+        for num in nums:
+            count[num] = count.get(num, 0) + 1
+
+        buckets = [[] for _ in range(len(nums) + 1)]     
+        for num, freq in count.items():
+            buckets[freq].append(num)
+        
+        result = []
+        for i in range(len(buckets) - 1, -1, -1):
+            for num in buckets[i]:
+                result.append(num)
+                if len(result) == k:
+                    return result
+            return result
+
 
         #use bucket sort 
         # create the key of the index to be the count of how many of each elements there is
