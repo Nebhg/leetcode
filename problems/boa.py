@@ -97,16 +97,23 @@ class Solution:
             # for each number in the list we want to track how many times it appears in the list, then return the top k frequency elements
             # need to intialise the index of the array to be a representation oh how many times each number appears so that we dont have to di the other way of having an index for every element in the nums list with many be empty if the last vlaue is larger
 
+    def twoSum1(self, nums, target):
+        # need to scan the list of nums and find the pair that makes the target
+        for i in range(len(nums)):
+            for j in range(i + 1, len(nums)):
+                if nums[i] + nums[j] == target:
+                    return [i, j]
+        
 
 
 if __name__ == "__main__":
     solution = Solution()
 
     #need test casses for contains_duplicate and twoSum
-    assert solution.twoSum([2, 7, 11, 15], 9) == [0, 1]
-    assert solution.twoSum([3, 2, 4], 6) == [1, 2]
-    assert solution.contains_duplicate([1, 2, 3, 1]) == True
-    assert solution.contains_duplicate([1, 2, 3, 4]) == False
+    assert solution.twoSum1([2, 7, 11, 15], 9) == [0, 1]
+    assert solution.twoSum1([3, 2, 4], 6) == [1, 2]
+    # assert solution.contains_duplicate([1, 2, 3, 1]) == True
+    # assert solution.contains_duplicate([1, 2, 3, 4]) == False
 
     #create tests for gorup anagrams
     assert solution.group_anagrams(["eat", "tea", "tan", "ate", "nat", "bat"]) == [["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]  

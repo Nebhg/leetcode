@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Visualiser — LeetCode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0e;
+    --panel: #161614;
+    --border: #2a2a27;
+    --text: #e8e6e1;
+    --muted: #8f8c84;
+    --accent: #e0a458;
+    --green: #7fb069;
+    --red: #d9706c;
+    --blue: #6ca6c1;
+    --pink: #c98bb9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px 64px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 400; }
+  .subtitle { color: var(--muted); margin: 6px 0 24px; font-size: 0.95rem; }
+  .subtitle strong { color: var(--accent); font-weight: 500; }
+
+  .layout { display: grid; grid-template-columns: 250px 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  /* ---- problem list sidebar ---- */
+  .sidebar { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; position: sticky; top: 16px; max-height: calc(100vh - 48px); overflow-y: auto; }
+  .search {
+    width: 100%; background: #1d1d1a; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+    padding: 8px 12px; margin-bottom: 14px; outline: none;
+  }
+  .search:focus { border-color: var(--accent); }
+  .group { margin-bottom: 14px; }
+  .group h4 {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .pitem {
+    display: block; width: 100%; text-align: left; background: none; border: 1px solid transparent;
+    color: #c9c6be; font-family: 'DM Sans', sans-serif; font-size: 0.86rem;
+    padding: 6px 10px; border-radius: 7px; cursor: pointer; line-height: 1.3;
+  }
+  .pitem:hover { color: var(--text); background: #1d1d1a; }
+  .pitem.active { color: var(--accent); border-color: var(--accent); background: rgba(224,164,88,0.07); }
+  .count { font-size: 0.75rem; color: #55534c; margin-top: 4px; }
+
+  .blurb {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 16px; font-size: 0.9rem; color: var(--muted); line-height: 1.55;
+  }
+  .blurb b { color: var(--text); font-weight: 500; }
+
+  .grid { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 16px; }
+  @media (max-width: 1180px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .panel h3 {
+    font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px;
+  }
+
+  pre.code { font-family: 'DM Mono', monospace; font-size: 0.85rem; line-height: 1.8; overflow-x: auto; }
+  .cl { display: block; padding: 0 8px; border-radius: 5px; white-space: pre; color: #c9c6be; }
+  .cl.hl { background: rgba(224, 164, 88, 0.14); color: var(--text); outline: 1px solid rgba(224, 164, 88, 0.35); }
+  .lineno { color: #55534c; margin-right: 14px; user-select: none; }
+
+  .viz-section { margin-bottom: 18px; }
+  .cells { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cellcol { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .cell {
+    min-width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    background: #1d1d1a; border: 1px solid var(--border); border-radius: 8px;
+    font-family: 'DM Mono', monospace; font-size: 0.95rem; padding: 0 6px;
+  }
+  .cell.cur { border-color: var(--accent); background: rgba(224, 164, 88, 0.12); }
+  .cell.good { border-color: var(--green); background: rgba(127, 176, 105, 0.12); }
+  .cell.bad { border-color: var(--red); background: rgba(217, 112, 108, 0.12); }
+  .idx { font-size: 0.68rem; color: #55534c; font-family: 'DM Mono', monospace; }
+  .ptr { font-size: 0.7rem; font-family: 'DM Mono', monospace; font-weight: 500; border-radius: 4px; padding: 1px 6px; visibility: hidden; }
+  .ptr.show { visibility: visible; }
+  .ptr.p0 { color: var(--accent); border: 1px solid var(--accent); }
+  .ptr.p1 { color: var(--blue); border: 1px solid var(--blue); }
+  .ptr.p2 { color: var(--pink); border: 1px solid var(--pink); }
+
+  .maprows { display: flex; flex-direction: column; gap: 6px; }
+  .maprow {
+    display: flex; align-items: center; gap: 10px; font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    background: #1d1d1a; border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; width: fit-content;
+  }
+  .maprow.new { border-color: var(--green); }
+  .maprow .arrow { color: var(--muted); }
+  .empty { color: #55534c; font-size: 0.85rem; font-style: italic; }
+
+  .stackbox { display: flex; flex-direction: column-reverse; gap: 6px; min-height: 52px; width: fit-content; }
+  .stackitem {
+    width: 64px; height: 40px; display: flex; align-items: center; justify-content: center;
+    background: #1d1d1a; border: 1px solid var(--border); border-radius: 7px;
+    font-family: 'DM Mono', monospace; font-size: 0.95rem;
+  }
+  .stackitem.top { border-color: var(--accent); }
+  .stackbase { width: 64px; border-top: 2px solid #3a3a36; margin-top: 2px; font-size: 0.65rem; color: #55534c; text-align: center; padding-top: 3px; font-family: 'DM Mono', monospace; }
+
+  .vars { display: flex; gap: 8px; flex-wrap: wrap; }
+  .var {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem; background: #1d1d1a;
+    border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px;
+  }
+  .var b { color: var(--blue); font-weight: 500; }
+
+  .note {
+    margin-top: 4px; padding: 14px 16px; border-radius: 10px; font-size: 0.93rem; line-height: 1.55;
+    background: var(--panel); border: 1px solid var(--border); min-height: 76px;
+  }
+  .note.result-true { border-color: var(--green); }
+  .note.result-false { border-color: var(--red); }
+  .note code { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 0.87rem; }
+
+  .controls { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  button.ctl {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 18px; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+  }
+  button.ctl:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  button.ctl:disabled { opacity: 0.35; cursor: default; }
+  .stepcount { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); margin-left: auto; }
+  .kbd-hint { font-size: 0.78rem; color: #55534c; margin-top: 10px; }
+  .kbd-hint kbd { font-family: 'DM Mono', monospace; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.75rem; }
+
+  .protocol {
+    margin-top: 22px; border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+    font-size: 0.85rem; color: var(--muted); line-height: 1.6;
+  }
+  .protocol b { color: var(--accent); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pattern Visualiser</h1>
+  <p class="subtitle">Step through the <strong>state</strong>, not the syntax. When you can draw every step unaided, code it from a blank file — with asserts.</p>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <input class="search" id="search" type="text" placeholder="Search problems…">
+      <div id="problist"></div>
+      <div class="count" id="count"></div>
+    </aside>
+
+    <div>
+      <div class="blurb" id="blurb"></div>
+      <div class="grid">
+        <div class="panel"><h3>Python</h3><pre class="code" id="code"></pre></div>
+        <div>
+          <div class="panel" id="viz"></div>
+          <div class="note" id="note"></div>
+          <div class="controls">
+            <button class="ctl" id="reset">⟲ Reset</button>
+            <button class="ctl" id="prev">◀ Prev</button>
+            <button class="ctl" id="next">Next ▶</button>
+            <span class="stepcount" id="stepcount"></span>
+          </div>
+          <div class="kbd-hint">Use <kbd>←</kbd> <kbd>→</kbd> to step. After the trace: close this, open a blank file, write it cold.</div>
+        </div>
+      </div>
+      <div class="protocol">
+        <b>The protocol:</b> 1) Trace the state here or on paper until you can predict the next step before clicking. 2) Blank file — write the function yourself, no skeleton. 3) Minimum 3 asserts: example case, empty/single input, edge case. 4) Cold rewrite at +1, +3, +7 days. Recognition without reconstruction is worthless.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const cp = o => JSON.parse(JSON.stringify(o));
+
+/* ================================================================
+   PROBLEM GENERATORS — add new gen functions here.
+
+   Each generator returns:
+   {
+     code: "python source as one string",
+     steps: [ { line, arr?, map?, stack?, vars?, note, result? } ],
+     panels: subset of ["arr", "map", "stack", "vars"],
+     arrLabel?, mapLabel?
+   }
+
+   Step state schema:
+   - line:   1-based line number in `code` to highlight
+   - arr:    { v: [values], ptrs: { name: [index, colorIdx 0-2] },
+               good: [indices], bad: [indices] }
+   - map:    [[key, value], ...]   (snapshot — always cp() it)
+   - mapNew: key just inserted (renders green)
+   - stack:  [values]              (snapshot — always cp() it)
+   - vars:   { name: value }
+   - note:   HTML string explaining WHY this step happens
+   - result: true/false on terminal steps (colors the note green/red)
+   ================================================================ */
+
+function genTwoSum() {
+  const nums = [3, 9, 12, 7, 15], target = 19, steps = [];
+  const code =
+`def two_sum(nums, target):
+    seen = {}
+    for i, n in enumerate(nums):
+        complement = target - n
+        if complement in seen:
+            return [seen[complement], i]
+        seen[n] = i
+    return []`;
+  let seen = [];
+  steps.push({ line: 2, arr: { v: nums, ptrs: {} }, map: cp(seen), vars: { target },
+    note: "Create an empty hashmap <code>seen</code>. It stores <code>value → index</code> for every number already visited. One pass, O(n)." });
+  for (let i = 0; i < nums.length; i++) {
+    const n = nums[i];
+    steps.push({ line: 3, arr: { v: nums, ptrs: { i: [i, 0] } }, map: cp(seen), vars: { target, i, n },
+      note: `i=${i}: current number is <code>${n}</code>.` });
+    const comp = target - n;
+    steps.push({ line: 4, arr: { v: nums, ptrs: { i: [i, 0] } }, map: cp(seen), vars: { target, i, n, complement: comp },
+      note: `complement = ${target} − ${n} = <code>${comp}</code>. The question becomes: have we already seen ${comp}?` });
+    const hit = seen.find(([k]) => k === comp);
+    if (hit) {
+      steps.push({ line: 5, arr: { v: nums, ptrs: { i: [i, 0] }, good: [hit[1], i] }, map: cp(seen), mapHit: comp, vars: { target, i, n, complement: comp },
+        note: `<code>${comp}</code> IS in the map (stored at index ${hit[1]}). Found the pair.` });
+      steps.push({ line: 6, arr: { v: nums, ptrs: {}, good: [hit[1], i] }, map: cp(seen), vars: {}, result: true,
+        note: `Return <code>[${hit[1]}, ${i}]</code> — nums[${hit[1]}] + nums[${i}] = ${nums[hit[1]]} + ${n} = ${target}. ✓` });
+      break;
+    } else {
+      steps.push({ line: 5, arr: { v: nums, ptrs: { i: [i, 0] } }, map: cp(seen), vars: { target, i, n, complement: comp },
+        note: `<code>${comp}</code> is not in the map yet.` });
+      seen.push([n, i]);
+      steps.push({ line: 7, arr: { v: nums, ptrs: { i: [i, 0] } }, map: cp(seen), mapNew: n, vars: { target, i, n },
+        note: `Store <code>${n} → ${i}</code> so a future number can find it.` });
+    }
+  }
+  return { code, steps, panels: ["arr", "map", "vars"], arrLabel: "nums", mapLabel: "seen  {value → index}" };
+}
+
+function genValidParens() {
+  const s = "({[]})", steps = [];
+  const code =
+`def is_valid(s):
+    stack = []
+    pairs = {')': '(', ']': '[', '}': '{'}
+    for ch in s:
+        if ch in pairs:
+            if not stack or stack[-1] != pairs[ch]:
+                return False
+            stack.pop()
+        else:
+            stack.append(ch)
+    return not stack`;
+  const chars = s.split(""), closers = { ")": "(", "]": "[", "}": "{" };
+  let stack = [];
+  steps.push({ line: 2, arr: { v: chars, ptrs: {} }, stack: cp(stack), vars: {},
+    note: "Empty stack. Openers get pushed; every closer must match the most recent unclosed opener — that's exactly what a stack gives you (LIFO)." });
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i];
+    steps.push({ line: 4, arr: { v: chars, ptrs: { ch: [i, 0] } }, stack: cp(stack), vars: {},
+      note: `Current char: <code>${ch}</code>` });
+    if (closers[ch]) {
+      steps.push({ line: 5, arr: { v: chars, ptrs: { ch: [i, 0] } }, stack: cp(stack), vars: {},
+        note: `<code>${ch}</code> is a closer. It must match the top of the stack.` });
+      const top = stack[stack.length - 1];
+      if (!stack.length || top !== closers[ch]) {
+        steps.push({ line: 7, arr: { v: chars, ptrs: { ch: [i, 0] }, bad: [i] }, stack: cp(stack), vars: {}, result: false,
+          note: `Top of stack is <code>${top ?? "nothing"}</code>, but <code>${ch}</code> needs <code>${closers[ch]}</code>. Return False.` });
+        return { code, steps, panels: ["arr", "stack"], arrLabel: 's = "' + s + '"' };
+      }
+      steps.push({ line: 6, arr: { v: chars, ptrs: { ch: [i, 0] } }, stack: cp(stack), vars: {},
+        note: `Top of stack is <code>${top}</code> — matches <code>${ch}</code>. ✓` });
+      stack.pop();
+      steps.push({ line: 8, arr: { v: chars, ptrs: { ch: [i, 0] } }, stack: cp(stack), vars: {},
+        note: `Pop <code>${top}</code>. That pair is closed.` });
+    } else {
+      stack.push(ch);
+      steps.push({ line: 10, arr: { v: chars, ptrs: { ch: [i, 0] } }, stack: cp(stack), vars: {},
+        note: `<code>${ch}</code> is an opener — push it. It now waits for its closer.` });
+    }
+  }
+  steps.push({ line: 11, arr: { v: chars, ptrs: {} }, stack: cp(stack), vars: {}, result: stack.length === 0,
+    note: stack.length === 0 ? "Loop done, stack empty — every opener was closed. Return <code>True</code>. ✓"
+      : "Loop done but stack is NOT empty — unclosed openers remain. Return <code>False</code>." });
+  return { code, steps, panels: ["arr", "stack"], arrLabel: 's = "' + s + '"' };
+}
+
+function genPalindrome() {
+  const s = "race a car", steps = [];
+  const code =
+`def is_palindrome(s):
+    l, r = 0, len(s) - 1
+    while l < r:
+        if not s[l].isalnum():
+            l += 1
+        elif not s[r].isalnum():
+            r -= 1
+        elif s[l].lower() != s[r].lower():
+            return False
+        else:
+            l += 1
+            r -= 1
+    return True`;
+  const chars = s.split("").map(c => c === " " ? "␣" : c);
+  let l = 0, r = s.length - 1;
+  const alnum = c => /[a-z0-9]/i.test(c);
+  steps.push({ line: 2, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { l, r },
+    note: "Two pointers: <code>l</code> starts at the front, <code>r</code> at the back. They walk toward each other comparing characters." });
+  while (l < r) {
+    if (!alnum(s[l])) {
+      steps.push({ line: 4, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { l, r },
+        note: `<code>s[${l}]</code> = "${chars[l]}" isn't alphanumeric — skip it.` });
+      l++;
+      steps.push({ line: 5, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { l, r }, note: `l moves to ${l}.` });
+    } else if (!alnum(s[r])) {
+      steps.push({ line: 6, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { l, r },
+        note: `<code>s[${r}]</code> = "${chars[r]}" isn't alphanumeric — skip it.` });
+      r--;
+      steps.push({ line: 7, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { l, r }, note: `r moves to ${r}.` });
+    } else if (s[l].toLowerCase() !== s[r].toLowerCase()) {
+      steps.push({ line: 8, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] }, bad: [l, r] }, vars: { l, r },
+        note: `Compare: <code>"${chars[l]}"</code> vs <code>"${chars[r]}"</code> — they differ.` });
+      steps.push({ line: 9, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] }, bad: [l, r] }, vars: { l, r }, result: false,
+        note: `Mismatch means it cannot be a palindrome. Return <code>False</code>. (Note: a False outcome IS a valid answer — assert it.)` });
+      return { code, steps, panels: ["arr", "vars"], arrLabel: 's = "race a car"' };
+    } else {
+      steps.push({ line: 8, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] }, good: [l, r] }, vars: { l, r },
+        note: `Compare: <code>"${chars[l]}"</code> vs <code>"${chars[r]}"</code> — match. ✓` });
+      l++; r--;
+      steps.push({ line: 11, arr: { v: chars, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { l, r },
+        note: `Both pointers step inward: l=${l}, r=${r}.` });
+    }
+  }
+  steps.push({ line: 13, arr: { v: chars, ptrs: {} }, vars: { l, r }, result: true,
+    note: "Pointers met without a mismatch — it's a palindrome. Return <code>True</code>." });
+  return { code, steps, panels: ["arr", "vars"], arrLabel: 's = "race a car"' };
+}
+
+function genStock() {
+  const prices = [7, 1, 5, 3, 6, 4], steps = [];
+  const code =
+`def max_profit(prices):
+    min_price = float('inf')
+    best = 0
+    for p in prices:
+        if p < min_price:
+            min_price = p
+        else:
+            best = max(best, p - min_price)
+    return best`;
+  let minP = Infinity, best = 0;
+  steps.push({ line: 2, arr: { v: prices, ptrs: {} }, vars: { min_price: "inf", best: 0 },
+    note: "Track two things in one pass: the cheapest price seen so far, and the best profit achievable so far. <code>float('inf')</code> means 'anything beats this'." });
+  for (let i = 0; i < prices.length; i++) {
+    const p = prices[i];
+    steps.push({ line: 4, arr: { v: prices, ptrs: { p: [i, 0] } }, vars: { min_price: minP === Infinity ? "inf" : minP, best },
+      note: `Day ${i}: price = <code>${p}</code>.` });
+    if (p < minP) {
+      minP = p;
+      steps.push({ line: 6, arr: { v: prices, ptrs: { p: [i, 0] }, good: [i] }, vars: { min_price: minP, best },
+        note: `${p} is a new low — update <code>min_price = ${p}</code>. The best future sell will buy here.` });
+    } else {
+      const profit = p - minP;
+      const improved = profit > best;
+      best = Math.max(best, profit);
+      steps.push({ line: 8, arr: { v: prices, ptrs: { p: [i, 0] } }, vars: { min_price: minP, best },
+        note: `Sell today: ${p} − ${minP} = <code>${profit}</code>. ${improved ? `New best profit: ${best}. ✓` : `Not better than current best (${best}).`}` });
+    }
+  }
+  steps.push({ line: 9, arr: { v: prices, ptrs: {} }, vars: { min_price: minP, best }, result: true,
+    note: `Return <code>${best}</code> — buy at 1 (day 1), sell at 6 (day 4). One pass, O(n), O(1) space.` });
+  return { code, steps, panels: ["arr", "vars"], arrLabel: "prices" };
+}
+
+function genTwoSum2() {
+  const nums = [1, 3, 4, 6, 8, 11], target = 10, steps = [];
+  const code =
+`def two_sum_sorted(numbers, target):
+    l, r = 0, len(numbers) - 1
+    while l < r:
+        s = numbers[l] + numbers[r]
+        if s == target:
+            return [l + 1, r + 1]
+        if s < target:
+            l += 1
+        else:
+            r -= 1
+    return []`;
+  let l = 0, r = nums.length - 1;
+  steps.push({ line: 2, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { target, l, r },
+    note: "The array is <code>sorted</code> — that's why two pointers work. Start at both ends: the smallest possible partner and the largest." });
+  while (l < r) {
+    const s = nums[l] + nums[r];
+    steps.push({ line: 4, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { target, l, r, s },
+      note: `s = ${nums[l]} + ${nums[r]} = <code>${s}</code>.` });
+    if (s === target) {
+      steps.push({ line: 5, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] }, good: [l, r] }, vars: { target, l, r, s },
+        note: `<code>${s}</code> equals the target. Found it.` });
+      steps.push({ line: 6, arr: { v: nums, ptrs: {}, good: [l, r] }, vars: {}, result: true,
+        note: `Return <code>[${l + 1}, ${r + 1}]</code> (this problem is 1-indexed). ${nums[l]} + ${nums[r]} = ${target}. ✓` });
+      break;
+    } else if (s < target) {
+      steps.push({ line: 7, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { target, l, r, s },
+        note: `${s} &lt; ${target} — the sum is too small. Because the array is sorted, the ONLY way to grow the sum is to move <code>l</code> right.` });
+      l++;
+      steps.push({ line: 8, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { target, l, r },
+        note: `l moves to ${l} (value ${nums[l]}).` });
+    } else {
+      steps.push({ line: 9, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { target, l, r, s },
+        note: `${s} &gt; ${target} — the sum is too big. The only way to shrink it is to move <code>r</code> left.` });
+      r--;
+      steps.push({ line: 10, arr: { v: nums, ptrs: { l: [l, 1], r: [r, 2] } }, vars: { target, l, r },
+        note: `r moves to ${r} (value ${nums[r]}).` });
+    }
+  }
+  return { code, steps, panels: ["arr", "vars"], arrLabel: "numbers (sorted)" };
+}
+
+function genClimbingStairs() {
+  const n = 5, steps = [];
+  const code =
+`def climb_stairs(n):
+    if n <= 2:
+        return n
+    dp = [0] * (n + 1)
+    dp[1] = 1
+    dp[2] = 2
+    for i in range(3, n + 1):
+        dp[i] = dp[i-1] + dp[i-2]
+    return dp[n]`;
+
+  let dp = new Array(n + 1).fill(0);
+
+  steps.push({ line: 2, arr: { v: cp(dp), ptrs: {} }, vars: { n },
+    note: `<code>n = ${n}</code>. The check <code>n &lt;= 2</code> is false, so we proceed. Key insight: to reach step <code>i</code> you arrived from either step <code>i-1</code> (one step) or step <code>i-2</code> (two steps), so <code>dp[i] = dp[i-1] + dp[i-2]</code> — Fibonacci with seeded base cases.` });
+
+  steps.push({ line: 4, arr: { v: cp(dp), ptrs: {} }, vars: { n },
+    note: `Initialise <code>dp</code> as ${n + 1} zeros. Index 0 is unused; <code>dp[k]</code> will hold the number of distinct ways to climb exactly <code>k</code> stairs.` });
+
+  dp[1] = 1;
+  steps.push({ line: 5, arr: { v: cp(dp), ptrs: {}, good: [1] }, vars: { n },
+    note: `Base case: <code>dp[1] = 1</code>. Only one way to reach step 1: a single step.` });
+
+  dp[2] = 2;
+  steps.push({ line: 6, arr: { v: cp(dp), ptrs: {}, good: [2] }, vars: { n },
+    note: `Base case: <code>dp[2] = 2</code>. Two ways: (1+1) or (jump 2 at once).` });
+
+  for (let i = 3; i <= n; i++) {
+    steps.push({ line: 7, arr: { v: cp(dp), ptrs: { i: [i, 0] } }, vars: { n, i },
+      note: `<code>i = ${i}</code>. Count the ways to reach step ${i}. You could only have come from step ${i - 1} or step ${i - 2} — add both.` });
+    dp[i] = dp[i - 1] + dp[i - 2];
+    steps.push({ line: 8, arr: { v: cp(dp), ptrs: { i: [i, 0] }, good: [i - 2, i - 1, i] }, vars: { n, i },
+      note: `<code>dp[${i}] = dp[${i - 1}] + dp[${i - 2}] = ${dp[i - 1]} + ${dp[i - 2]} = <b>${dp[i]}</b></code>. Highlighted: the two source cells and the result.` });
+  }
+
+  steps.push({ line: 9, arr: { v: cp(dp), ptrs: {}, good: [n] }, vars: { n }, result: true,
+    note: `Return <code>dp[${n}] = ${dp[n]}</code>. There are <b>${dp[n]}</b> distinct ways to climb ${n} stairs. Full table: [${dp.join(', ')}] — Fibonacci from index 2 onward. O(n) time, O(n) space.` });
+
+  return { code, steps, panels: ["arr", "vars"], arrLabel: `dp  (index = step, n=${n})` };
+}
+
+/* ================================================================
+   PROBLEM REGISTRY — add new entries here.
+   { id, title, pattern, blurb, gen }
+   Problems are grouped in the sidebar by `pattern`, in the order
+   patterns first appear in this array.
+   ================================================================ */
+
+const problems = [
+  { id: "twosum", title: "Two Sum (#1)", pattern: "Hashmap",
+    blurb: "<b>When to reach for it:</b> you need to find a pair/partner for each element. Instead of scanning the rest of the array for every element (O(n²)), store what you've seen in a hashmap and ask \"has my partner already appeared?\" in O(1). <b>The state to watch:</b> the map growing as i moves.",
+    gen: genTwoSum },
+  { id: "parens", title: "Valid Parentheses (#20)", pattern: "Stack",
+    blurb: "<b>When to reach for it:</b> matching/nesting problems where the most recent open thing must be closed first. A stack is LIFO — the top is always the innermost unclosed bracket. <b>The state to watch:</b> the stack growing on openers, shrinking on matched closers. Valid = stack empty at the end.",
+    gen: genValidParens },
+  { id: "palindrome", title: "Valid Palindrome (#125)", pattern: "Two Pointers",
+    blurb: "<b>When to reach for it:</b> comparing elements from both ends of a sequence, or shrinking a search space inward. Two indices, <code style=\"font-family:'DM Mono',monospace\">while l &lt; r</code>, move one or both each step. <b>The state to watch:</b> which pointer moves and why (skip vs compare).",
+    gen: genPalindrome },
+  { id: "stock", title: "Best Time to Buy & Sell Stock (#121)", pattern: "One pass / running min",
+    blurb: "<b>When to reach for it:</b> best pair where order matters (buy before sell). You don't need to remember the whole past — only the minimum so far. <b>The state to watch:</b> min_price only ever falls; best only ever rises.",
+    gen: genStock },
+  { id: "twosum2", title: "Two Sum II (#167)", pattern: "Two Pointers",
+    blurb: "<b>When to reach for it:</b> the input is <b>sorted</b> — that's the giveaway. Sorting gives you control: moving the left pointer can only grow the sum, moving the right can only shrink it, so every comparison eliminates options. O(n) instead of hashmap O(n) space. <b>The state to watch:</b> which pointer moves after each comparison, and why it's the only legal move.",
+    gen: genTwoSum2 },
+  { id: "climbingstairs", title: "Climbing Stairs (#70)", pattern: "Dynamic Programming",
+    blurb: "<b>When to reach for it:</b> counting distinct ways to reach a target, where the answer at position <code style=\"font-family:'DM Mono',monospace\">i</code> depends only on positions <code style=\"font-family:'DM Mono',monospace\">i-1</code> and <code style=\"font-family:'DM Mono',monospace\">i-2</code>. DP avoids recomputing overlapping subproblems by storing results as you go. This is the canonical Fibonacci DP — recognise the recurrence, seed two base cases, fill forward. <b>The state to watch:</b> the dp table filling left to right; every cell is purely a sum of its two left neighbours.",
+    gen: genClimbingStairs },
+];
+
+/* ================================================================
+   RENDERING — generic; don't edit when adding problems.
+   ================================================================ */
+
+let cur = null, idx = 0;
+
+function loadProblem(p) {
+  cur = p.gen();
+  cur.meta = p;
+  idx = 0;
+  document.querySelectorAll(".pitem").forEach(t => t.classList.toggle("active", t.dataset.id === p.id));
+  document.getElementById("blurb").innerHTML = p.blurb;
+  const lines = cur.code.split("\n");
+  document.getElementById("code").innerHTML = lines.map((ln, i) =>
+    `<span class="cl" id="cl-${i + 1}"><span class="lineno">${String(i + 1).padStart(2, " ")}</span>${ln.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>`).join("");
+  render();
+}
+
+function render() {
+  const st = cur.steps[idx];
+  document.querySelectorAll(".cl").forEach(el => el.classList.remove("hl"));
+  const lineEl = document.getElementById("cl-" + st.line);
+  if (lineEl) lineEl.classList.add("hl");
+
+  const viz = document.getElementById("viz");
+  let html = "";
+
+  if (st.arr) {
+    html += `<div class="viz-section"><h3>${cur.arrLabel || "array"}</h3><div class="cells">`;
+    st.arr.v.forEach((v, i) => {
+      const ptrEntries = Object.entries(st.arr.ptrs || {}).filter(([, [pi]]) => pi === i);
+      let cls = "cell";
+      if (ptrEntries.length) cls += " cur";
+      if ((st.arr.good || []).includes(i)) cls = "cell good";
+      if ((st.arr.bad || []).includes(i)) cls = "cell bad";
+      const ptrHtml = ptrEntries.length
+        ? ptrEntries.map(([name, [, c]]) => `<span class="ptr show p${c}">${name}</span>`).join("")
+        : `<span class="ptr">·</span>`;
+      html += `<div class="cellcol"><div class="${cls}">${v}</div><span class="idx">${i}</span>${ptrHtml}</div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  if (cur.panels.includes("map")) {
+    html += `<div class="viz-section"><h3>${cur.mapLabel || "hashmap"}</h3><div class="maprows">`;
+    if (!st.map || !st.map.length) html += `<span class="empty">empty</span>`;
+    else st.map.forEach(([k, v]) => {
+      const cls = (st.mapNew === k) ? "maprow new" : "maprow";
+      html += `<div class="${cls}"><span>${k}</span><span class="arrow">→</span><span>${v}</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  if (cur.panels.includes("stack")) {
+    html += `<div class="viz-section"><h3>stack</h3><div>`;
+    html += `<div class="stackbox">`;
+    if (st.stack && st.stack.length)
+      st.stack.forEach((v, i) => { html += `<div class="stackitem${i === st.stack.length - 1 ? " top" : ""}">${v}</div>`; });
+    html += `</div><div class="stackbase">${st.stack && st.stack.length ? "bottom" : "empty"}</div></div></div>`;
+  }
+
+  if (cur.panels.includes("vars") && st.vars && Object.keys(st.vars).length) {
+    html += `<div class="viz-section"><h3>variables</h3><div class="vars">`;
+    Object.entries(st.vars).forEach(([k, v]) => { html += `<span class="var"><b>${k}</b> = ${v}</span>`; });
+    html += `</div></div>`;
+  }
+
+  viz.innerHTML = html;
+
+  const note = document.getElementById("note");
+  note.innerHTML = st.note;
+  note.className = "note" + (st.result === true ? " result-true" : st.result === false ? " result-false" : "");
+
+  document.getElementById("stepcount").textContent = `step ${idx + 1} / ${cur.steps.length}`;
+  document.getElementById("prev").disabled = idx === 0;
+  document.getElementById("next").disabled = idx === cur.steps.length - 1;
+}
+
+document.getElementById("next").onclick = () => { if (idx < cur.steps.length - 1) { idx++; render(); } };
+document.getElementById("prev").onclick = () => { if (idx > 0) { idx--; render(); } };
+document.getElementById("reset").onclick = () => { idx = 0; render(); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight") document.getElementById("next").click();
+  if (e.key === "ArrowLeft") document.getElementById("prev").click();
+});
+
+/* ---- sidebar: grouped list + search ---- */
+
+function buildList(filter) {
+  const listEl = document.getElementById("problist");
+  const q = (filter || "").toLowerCase().trim();
+  const groups = [];
+  const byPattern = {};
+  problems.forEach(p => {
+    if (q && !(p.title + " " + p.pattern).toLowerCase().includes(q)) return;
+    if (!byPattern[p.pattern]) { byPattern[p.pattern] = []; groups.push(p.pattern); }
+    byPattern[p.pattern].push(p);
+  });
+  let html = "";
+  let shown = 0;
+  groups.forEach(g => {
+    html += `<div class="group"><h4>${g}</h4>`;
+    byPattern[g].forEach(p => {
+      shown++;
+      const active = cur && cur.meta && cur.meta.id === p.id ? " active" : "";
+      html += `<button class="pitem${active}" data-id="${p.id}">${p.title}</button>`;
+    });
+    html += `</div>`;
+  });
+  listEl.innerHTML = html || `<span class="empty">no matches</span>`;
+  document.getElementById("count").textContent = `${shown} of ${problems.length} problems`;
+  listEl.querySelectorAll(".pitem").forEach(b => {
+    b.onclick = () => { loadProblem(problems.find(p => p.id === b.dataset.id)); };
+  });
+}
+
+document.getElementById("search").addEventListener("input", e => buildList(e.target.value));
+
+buildList("");
+loadProblem(problems[0]);
+</script>
+</body>
+</html>
